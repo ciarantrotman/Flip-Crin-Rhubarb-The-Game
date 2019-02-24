@@ -1,3 +1,4 @@
+# Unity
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -18,11 +19,18 @@ ExportedObj/
 *.tmp
 *.user
 *.userprefs
+*.userosscache
 *.pidb
 *.booproj
 *.svd
 *.pdb
 *.opendb
+
+# Rider
+*.idea
+*.idea/*
+BuildIL2CPP/
+Build2/
 
 # Unity3D generated meta files
 *.pidb.meta
