@@ -5,7 +5,7 @@
       "app_key": "application.generated.unity.hdrpsketch.exe",
       "launch_type": "url",
       "url": "steam://launch/",
-      "action_manifest_path": "S:\\Personal\\Projects\\Unity Development\\HDRP Sketches\\HDRP Sketch\\actions.json",
+      "action_manifest_path": "B:\\Users\\Septimus\\Unity Projects\\Flip-Crin-Rhubarb-The-Game\\actions.json",
       "strings": {
         "en_us": {
           "name": "HDRP Sketch [Testing]"
