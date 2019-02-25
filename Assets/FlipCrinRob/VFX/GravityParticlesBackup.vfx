@@ -136,7 +136,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: GravityParticles
+  m_Name: GravityParticlesBackup
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 0}
   m_Children:
@@ -315,7 +315,7 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: GravityParticles
+  m_Name: GravityParticlesBackup
   m_Graph: {fileID: 114350483966674976}
   m_ShaderSources:
   - compute: 1
@@ -422,7 +422,7 @@ VisualEffectResource:
       \   float tmp_bi = tmp_be[0];\n\t\t\t    float tmp_bj = tmp_bh + tmp_bi;\n\t\t\t
       \   float tmp_bl = pow(tmp_bj, (float)0.5);\n\t\t\t    float tmp_bm = tmp_bl
       * tmp_bl;\n\t\t\t    float tmp_bn = (float)1 / tmp_bm;\n\t\t\t    float tmp_bo
-      = uniform_b * tmp_bn;\n\t\t\t    bool tmp_bp = uniform_d < tmp_bl;\n\t\t\t    float
+      = uniform_b * tmp_bn;\n\t\t\t    bool tmp_bp = uniform_d > tmp_bl;\n\t\t\t    float
       tmp_br = tmp_bp ? (float)1 : (float)0;\n\t\t\t    float tmp_bs = tmp_bo * tmp_br;\n\t\t\t
       \   float3 tmp_bt = float3(tmp_bs, tmp_bs, tmp_bs);\n\t\t\t    float tmp_bu
       = (float)1 / tmp_bl;\n\t\t\t    float3 tmp_bv = float3(tmp_bu, tmp_bu, tmp_bu);\n\t\t\t
@@ -433,7 +433,7 @@ VisualEffectResource:
       \   float tmp_bh = tmp_bf + tmp_bg;\n\t\t\t    float tmp_bi = tmp_be[0];\n\t\t\t
       \   float tmp_bj = tmp_bh + tmp_bi;\n\t\t\t    float tmp_bl = pow(tmp_bj, (float)0.5);\n\t\t\t
       \   float tmp_bm = tmp_bl * tmp_bl;\n\t\t\t    float tmp_bn = (float)1 / tmp_bm;\n\t\t\t
-      \   float tmp_bo = uniform_b * tmp_bn;\n\t\t\t    bool tmp_bp = uniform_d <
+      \   float tmp_bo = uniform_b * tmp_bn;\n\t\t\t    bool tmp_bp = uniform_d >
       tmp_bl;\n\t\t\t    float tmp_br = tmp_bp ? (float)1 : (float)0;\n\t\t\t    float
       tmp_bs = tmp_bo * tmp_br;\n\t\t\t    float3 tmp_bt = float3(tmp_bs, tmp_bs,
       tmp_bs);\n\t\t\t    float tmp_bu = (float)1 / tmp_bl;\n\t\t\t    float3 tmp_bv
@@ -461,7 +461,7 @@ VisualEffectResource:
       \   float tmp_bi = tmp_be[0];\n\t\t    float tmp_bj = tmp_bh + tmp_bi;\n\t\t
       \   float tmp_bl = pow(tmp_bj, (float)0.5);\n\t\t    float tmp_bm = tmp_bl *
       tmp_bl;\n\t\t    float tmp_bn = (float)1 / tmp_bm;\n\t\t    float tmp_bo = uniform_b
-      * tmp_bn;\n\t\t    bool tmp_bp = uniform_d < tmp_bl;\n\t\t    float tmp_br =
+      * tmp_bn;\n\t\t    bool tmp_bp = uniform_d > tmp_bl;\n\t\t    float tmp_br =
       tmp_bp ? (float)1 : (float)0;\n\t\t    float tmp_bs = tmp_bo * tmp_br;\n\t\t
       \   float3 tmp_bt = float3(tmp_bs, tmp_bs, tmp_bs);\n\t\t    float tmp_bu =
       (float)1 / tmp_bl;\n\t\t    float3 tmp_bv = float3(tmp_bu, tmp_bu, tmp_bu);\n\t\t
@@ -472,7 +472,7 @@ VisualEffectResource:
       \   float tmp_bh = tmp_bf + tmp_bg;\n\t\t    float tmp_bi = tmp_be[0];\n\t\t
       \   float tmp_bj = tmp_bh + tmp_bi;\n\t\t    float tmp_bl = pow(tmp_bj, (float)0.5);\n\t\t
       \   float tmp_bm = tmp_bl * tmp_bl;\n\t\t    float tmp_bn = (float)1 / tmp_bm;\n\t\t
-      \   float tmp_bo = uniform_b * tmp_bn;\n\t\t    bool tmp_bp = uniform_d < tmp_bl;\n\t\t
+      \   float tmp_bo = uniform_b * tmp_bn;\n\t\t    bool tmp_bp = uniform_d > tmp_bl;\n\t\t
       \   float tmp_br = tmp_bp ? (float)1 : (float)0;\n\t\t    float tmp_bs = tmp_bo
       * tmp_br;\n\t\t    float3 tmp_bt = float3(tmp_bs, tmp_bs, tmp_bs);\n\t\t    float
       tmp_bu = (float)1 / tmp_bl;\n\t\t    float3 tmp_bv = float3(tmp_bu, tmp_bu,
@@ -6706,7 +6706,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614855}
   m_OutputSlots:
   - {fileID: 8926484042661614856}
-  condition: 2
+  condition: 4
 --- !u!114 &8926484042661614854
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10279,7 +10279,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614961}
   m_OutputSlots:
   - {fileID: 8926484042661614962}
-  condition: 2
+  condition: 4
 --- !u!114 &8926484042661614960
 MonoBehaviour:
   m_ObjectHideFlags: 0
