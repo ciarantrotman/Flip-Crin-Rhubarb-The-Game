@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace FlipCrinRob.Scripts
 {
@@ -18,13 +15,15 @@ namespace FlipCrinRob.Scripts
 
         private void Start()
         {
-            _lHandle.ClipThreshold = _dual;
-            _cHandle.ClipThreshold = _mono;
-            _rHandle.ClipThreshold = _dual;
+            
         }
 
         private void Update()
         {
+            _lHandle.ClipThreshold = _dual;
+            _cHandle.ClipThreshold = _mono;
+            _rHandle.ClipThreshold = _dual;
+            
 //            float Ll = _lHandle.HandleDistance(_controller.LeftControllerTransform());
 //            float Lc = _cHandle.HandleDistance(_controller.LeftControllerTransform());
 //            float Lr = _rHandle.HandleDistance(_controller.LeftControllerTransform());
