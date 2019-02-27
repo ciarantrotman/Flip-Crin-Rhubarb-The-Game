@@ -24,14 +24,14 @@ Material:
     m_Floats:
     - Vector1_BF46245C: 0.0001
     - Vector1_CE6A4545: 0.5
-    - Vector1_E3A07276: 0.3
+    - Vector1_E3A07276: 0.25
     - Vector1_ECB05B46: 1.37
     - _Activated: 1
     - _ClipThreshold: 1.25
     - _CutThreshold: 1.2
     - _Distance: 1.4
     m_Colors:
-    - _ActivatedColor: {r: 0.1768868, g: 0.7075472, b: 0.5943396, a: 1}
+    - _ActivatedColor: {r: 0.4669811, g: 0.7860716, b: 1, a: 1}
     - _Color: {r: 0.31603768, g: 1, b: 0.9562803, a: 1}
     - _DefaultColor: {r: 1, g: 1, b: 1, a: 0.5882353}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}

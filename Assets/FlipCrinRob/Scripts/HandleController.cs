@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace FlipCrinRob.Scripts
 {
@@ -11,22 +12,20 @@ namespace FlipCrinRob.Scripts
         private enum Handle
         {
             Left,
-            Right,
-            Center
+            Center,
+            Right
         }
         [SerializeField] private Handle _handle;
+        public bool Active { get; private set; }
 
         private void Start()
         {
             Debug.Log(name + ": " + ClipThreshold);
             _r = transform.GetComponent<Renderer>();
             
-            _r.material.SetFloat("_ClipThreshold", ClipThreshold);
-            _r.material.SetFloat("_CutThreshold", ClipThreshold * .75f);
-            transform.localScale = new Vector3(
-                ClipThreshold + ClipThreshold, 
-                ClipThreshold + ClipThreshold, 
-                ClipThreshold + ClipThreshold);
+            _r.material.SetFloat("_ClipThreshold", ClipThreshold * .9f);
+            _r.material.SetFloat("_CutThreshold", ClipThreshold * .25f);
+            transform.localScale = new Vector3(ClipThreshold, ClipThreshold, ClipThreshold);
         }
 
         private void Update()
@@ -40,25 +39,45 @@ namespace FlipCrinRob.Scripts
                     if (_distance(_controller.LeftControllerTransform()) <= ClipThreshold)
                     {
                         _r.material.SetInt("_Activated", _controller.LeftGrab() ? 0 : 1);
+                        Active = _controller.LeftGrab();
                     }
                     else
                     {
                         _r.material.SetInt("_Activated", 1);
+                        Active = false;
                     }
                     break;
                 case Handle.Right:
                     if (_distance(_controller.RightControllerTransform()) <= ClipThreshold)
                     {
                         _r.material.SetInt("_Activated", _controller.RightGrab() ? 0 : 1);
+                        Active = _controller.RightGrab();
                     }
                     else
                     {
                         _r.material.SetInt("_Activated", 1);
+                        Active = false;
                     }
                     break;
                 case Handle.Center:
-                    Debug.Log("Hold your horses captain");
+                    if (_distance(_controller.RightControllerTransform()) <= ClipThreshold)
+                    {
+                        _r.material.SetInt("_Activated", _controller.RightGrab() ? 0 : 1);
+                        Active = _controller.RightGrab();
+                    }
+                    else if (_distance(_controller.LeftControllerTransform()) <= ClipThreshold)
+                    {
+                        _r.material.SetInt("_Activated", _controller.LeftGrab() ? 0 : 1);
+                        Active = _controller.LeftGrab();
+                    }
+                    else
+                    {
+                        _r.material.SetInt("_Activated", 1);
+                        Active = false;
+                    }
                     break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
             }
         }
         

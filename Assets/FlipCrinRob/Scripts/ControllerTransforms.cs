@@ -46,8 +46,13 @@ public class ControllerTransforms : MonoBehaviour
         return GrabGrip.GetState(SteamVR_Input_Sources.RightHand);
     }
 
-    private void Update()
+    public Vector3 LeftForwardvector()
     {
-   
+        return _l.transform.TransformVector(Vector3.forward);
+    }
+    
+    public Vector3 RightForwardvector()
+    {
+        return _r.transform.TransformVector(Vector3.forward);
     }
 }

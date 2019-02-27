@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Valve.VR;
 
 namespace FlipCrinRob.Scripts
 {
@@ -13,25 +14,29 @@ namespace FlipCrinRob.Scripts
         [SerializeField] private float _dual;
         [SerializeField] private float _mono;
 
-        private void Start()
-        {
-            
-        }
+        [SerializeField] private Rigidbody _rb;
 
-        private void Update()
+        private bool _lActive;
+        private bool _cActive;
+        private bool _rActive;
+        
+        private void Start()
         {
             _lHandle.ClipThreshold = _dual;
             _cHandle.ClipThreshold = _mono;
             _rHandle.ClipThreshold = _dual;
-            
-//            float Ll = _lHandle.HandleDistance(_controller.LeftControllerTransform());
-//            float Lc = _cHandle.HandleDistance(_controller.LeftControllerTransform());
-//            float Lr = _rHandle.HandleDistance(_controller.LeftControllerTransform());
-//            float Rl = _lHandle.HandleDistance(_controller.RightControllerTransform());
-//            float Rc = _cHandle.HandleDistance(_controller.RightControllerTransform());
-//            float Rr = _rHandle.HandleDistance(_controller.RightControllerTransform());
-//
-//            Debug.Log(Ll + ", " + Lc + ", " + Lr + ", " + Rl + ", " + Rc + ", " + Rr);
+        }
+
+        private void Update()
+        {
+            _lActive = _lHandle.Active;
+            _cActive = _cHandle.Active;
+            _rActive = _rHandle.Active;
+
+            if (_lActive && _rActive)
+            {
+                _rb.AddForce(new Vector3(0, 1, 30));
+            }
         }
     }
 }
