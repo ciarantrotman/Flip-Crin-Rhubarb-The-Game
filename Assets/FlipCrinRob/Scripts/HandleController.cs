@@ -25,7 +25,10 @@ namespace FlipCrinRob.Scripts
             
             _r.material.SetFloat("_ClipThreshold", ClipThreshold * .9f);
             _r.material.SetFloat("_CutThreshold", ClipThreshold * .25f);
-            transform.localScale = new Vector3(ClipThreshold, ClipThreshold, ClipThreshold);
+            transform.localScale = new Vector3(
+                ClipThreshold, // + ClipThreshold, 
+                ClipThreshold, // + ClipThreshold, 
+                ClipThreshold);// + ClipThreshold);
         }
 
         private void Update()
@@ -43,6 +46,8 @@ namespace FlipCrinRob.Scripts
                     }
                     else
                     {
+                        //BUG: Add in threshold distance at some point
+                        if (_controller.LeftGrab()) return; // keep accelerating while grabbing
                         _r.material.SetInt("_Activated", 1);
                         Active = false;
                     }
@@ -55,6 +60,8 @@ namespace FlipCrinRob.Scripts
                     }
                     else
                     {
+                        //BUG: Add in threshold distance at some point
+                        if (_controller.RightGrab()) return; // keep accelerating while grabbing
                         _r.material.SetInt("_Activated", 1);
                         Active = false;
                     }
