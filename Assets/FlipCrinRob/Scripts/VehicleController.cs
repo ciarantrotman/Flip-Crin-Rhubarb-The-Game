@@ -23,13 +23,15 @@ namespace FlipCrinRob.Scripts
         [SerializeField] private Transform _r;
         [SerializeField] private Transform _v;
 
-        private bool _lActive;
-        private bool _cActive;
-        private bool _rActive;
+        private bool lActive;
+        private bool cActive;
+        private bool rActive;
 
-        private const float M = 10f;
         private const float R = 5f;
-        
+
+        private const float HoverHeight = .2f;
+        private const float HoverForce = 50f;
+
         private void Start()
         {
             _lHandle.ClipThreshold = _dual;
@@ -39,20 +41,35 @@ namespace FlipCrinRob.Scripts
 
         private void Update()
         {
-            _lActive = _lHandle.Active;
-            _cActive = _cHandle.Active;
-            _rActive = _rHandle.Active;
+            lActive = _lHandle.Active;
+            cActive = _cHandle.Active;
+            rActive = _rHandle.Active;
         }
 
         private void FixedUpdate()
         {
-            if (_lActive && _rActive)
+            Hover();
+            
+            if (lActive && rActive)
             {
                 DualMovement();
             }
-            else if (_cActive)
+            else if (cActive)
             {
                 MonoMovement();
+            }
+        }
+
+        private void Hover()
+        {
+            Ray ray = new Ray (transform.position, -transform.up);
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit, HoverHeight))
+            {
+                float proportionalHeight = (HoverHeight - hit.distance) / HoverHeight;
+                Vector3 appliedHoverForce = Vector3.up * proportionalHeight * HoverForce;
+                _rb.AddForce(appliedHoverForce, ForceMode.Acceleration);
             }
         }
 
@@ -60,23 +77,27 @@ namespace FlipCrinRob.Scripts
         {
             _l.localRotation = _controller.LeftControllerTransform().localRotation;
             _r.localRotation = _controller.RightControllerTransform().localRotation;
-            _v.localRotation = Quaternion.Lerp(_v.localRotation, 
+            var averageRotation = _v.localRotation;
+            
+            averageRotation = Quaternion.Lerp(averageRotation, 
                 Quaternion.Lerp(
                     _controller.LeftControllerTransform().localRotation, 
                     _controller.RightControllerTransform().localRotation, 
                     .5f), 
                 .1f);
+            
+            _v.localRotation = averageRotation;
+
+            _rb.AddForce(_controller.LeftForwardvector() * _lHandle.M);
+            _rb.AddForce(_controller.RightForwardvector() * _rHandle.M);               
+            _rb.AddTorque(transform.up * averageRotation.y * R);
                 
-            _rb.AddForce(_controller.LeftForwardvector() * M);
-            _rb.AddForce(_controller.RightForwardvector() * M);               
-            _rb.AddTorque(transform.up * _v.localRotation.y * R);
-                
-            _speedText.SetText((_v.localRotation.y * R).ToString()); //_controller.LeftForwardvector().ToString());
+            _speedText.SetText((averageRotation.y * R).ToString());
         }
 
         private void MonoMovement()
         {
-            _rb.AddForce(transform.TransformVector(transform.forward) * M);
+            _rb.AddForce(transform.TransformVector(transform.forward) * _cHandle.M);
         }
     }
 }

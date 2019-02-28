@@ -8,7 +8,8 @@ namespace FlipCrinRob.Scripts
         [SerializeField] private Transform _l;
         [SerializeField] private Transform _r;
         [SerializeField] private bool _debugActive;
-    
+        [SerializeField] public BezierCurve curve;
+        [SerializeField] public Material lineRenderMat;
         public SteamVR_Action_Boolean GrabGrip;
 
         public Transform LeftControllerTransform()

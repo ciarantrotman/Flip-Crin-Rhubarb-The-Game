@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ContentModelStore">
-    <e p="C:\Users\ciara\.Rider2017.3\system\resharper-host\local\Transient\ReSharperHost\v11\SolutionCaches\_HDRP Sketch.-1553040449.00" t="ExcludeRecursive" />
+    <e p="C:\Users\ciara\.Rider2018.3\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\ciara\.Rider2018.3\system\resharper-host\local\Transient\ReSharperHost\v183\SolutionCaches\_HDRP Sketch.-1553040449.00" t="ExcludeRecursive" />
     <e p="S:\Personal\Projects\Unity Development\HDRP Sketches\HDRP Sketch" t="IncludeRecursive">
       <e p="Assembly-CSharp-Editor-firstpass.csproj" t="IncludeRecursive" />
       <e p="Assembly-CSharp-Editor.csproj" t="IncludeRecursive" />
@@ -9,8 +10,17 @@
       <e p="Assets" t="Include">
         <e p="FlipCrinRob" t="Include">
           <e p="Scripts" t="Include">
+            <e p="BezierCurve.cs" t="Include" />
+            <e p="ControllerTransforms.cs" t="Include" />
+            <e p="HandleController.cs" t="Include" />
             <e p="SimpleCameraController.cs" t="Include" />
+            <e p="VehicleController.cs" t="Include" />
           </e>
+        </e>
+        <e p="MeshToSDF" t="Include">
+          <e p="JumpFloodAssignment.compute" t="Include" />
+          <e p="MeshToSDF.cs" t="Include" />
+          <e p="MeshToVoxel.compute" t="Include" />
         </e>
         <e p="Plugins" t="Include">
           <e p="Editor" t="Include">
