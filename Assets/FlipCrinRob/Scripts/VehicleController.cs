@@ -27,16 +27,16 @@ namespace FlipCrinRob.Scripts
         private bool cActive;
         private bool rActive;
 
-        private const float R = 5f;
+        private const float R = 3f;
 
         private const float HoverHeight = .2f;
         private const float HoverForce = 50f;
 
         private void Start()
         {
-            _lHandle.ClipThreshold = _dual;
-            _cHandle.ClipThreshold = _mono;
-            _rHandle.ClipThreshold = _dual;
+            _lHandle.clipThreshold = _dual;
+            _cHandle.clipThreshold = _mono;
+            _rHandle.clipThreshold = _dual;
         }
 
         private void Update()
@@ -92,7 +92,7 @@ namespace FlipCrinRob.Scripts
             _rb.AddForce(_controller.RightForwardvector() * _rHandle.M);               
             _rb.AddTorque(transform.up * averageRotation.y * R);
                 
-            _speedText.SetText((averageRotation.y * R).ToString());
+            _speedText.SetText(_lHandle.M +  " | " + _rHandle.M);
         }
 
         private void MonoMovement()
