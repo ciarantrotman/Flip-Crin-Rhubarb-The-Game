@@ -27,10 +27,10 @@ namespace FlipCrinRob.Scripts
         private bool cActive;
         private bool rActive;
 
-        private const float R = 3f;
+        private const float R = 5f;
 
-        private const float HoverHeight = .2f;
-        private const float HoverForce = 50f;
+        private const float HoverHeight = .35f;
+        private const float HoverForce = 20f;
 
         private void Start()
         {
@@ -62,15 +62,15 @@ namespace FlipCrinRob.Scripts
 
         private void Hover()
         {
-            Ray ray = new Ray (transform.position, -transform.up);
+            var trans = transform;
+            var ray = new Ray (trans.position, -trans.up);
             RaycastHit hit;
-
-            if (Physics.Raycast(ray, out hit, HoverHeight))
-            {
-                float proportionalHeight = (HoverHeight - hit.distance) / HoverHeight;
-                Vector3 appliedHoverForce = Vector3.up * proportionalHeight * HoverForce;
-                rb.AddForce(appliedHoverForce, ForceMode.Acceleration);
-            }
+            
+            if (!Physics.Raycast(ray, out hit, HoverHeight)) return;
+            
+            var proportionalHeight = (HoverHeight - hit.distance) / HoverHeight;
+            var appliedHoverForce = Vector3.up * proportionalHeight * HoverForce;
+            rb.AddForce(appliedHoverForce, ForceMode.Acceleration);
         }
 
         private void DualMovement()
@@ -88,11 +88,11 @@ namespace FlipCrinRob.Scripts
             
             v.localRotation = averageRotation;
 
-            rb.AddForce(controller.LeftForwardvector() * lHandle.M);
-            rb.AddForce(controller.RightForwardvector() * rHandle.M);               
-            rb.AddTorque(transform.up * averageRotation.y * R);
+            rb.AddForce(controller.LeftForwardvector() * lHandle.M, ForceMode.Acceleration);
+            rb.AddForce(controller.RightForwardvector() * rHandle.M, ForceMode.Acceleration);               
+            rb.AddTorque(transform.up * averageRotation.y * R, ForceMode.Acceleration);
                 
-            speedText.SetText(lHandle.M +  " | " + rHandle.M);
+            speedText.SetText("{0:2} | {1:2}",lHandle.M, rHandle.M);
         }
 
         private void MonoMovement()

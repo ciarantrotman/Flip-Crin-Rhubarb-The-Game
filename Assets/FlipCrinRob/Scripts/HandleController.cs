@@ -10,7 +10,7 @@ namespace FlipCrinRob.Scripts
         [SerializeField] private ControllerTransforms controller;
         private float minThreshold = .1f;
         private float maxThreshold = .5f;
-        private const float A = 75f;
+        private const float A = 25f;
         public float ClipThreshold { private get; set; }
         
         private GameObject midpoint;
@@ -33,9 +33,7 @@ namespace FlipCrinRob.Scripts
         
         private void Start()
         {
-           Debug.Log(name + "[1]: " + ClipThreshold + ", " + minThreshold);
            SetupThresholds();
-           Debug.Log(name + "[2]: " + ClipThreshold + ", " + minThreshold);
            SetupShader();
            SetupLineRender();
            SetupMidpoint();
@@ -99,6 +97,8 @@ namespace FlipCrinRob.Scripts
                     midpointParent.transform.rotation = controller.RightControllerTransform().rotation;
                     break;
                 case Handle.Center:
+//                    HandleCheck(controller.LeftControllerTransform(), controller.LeftGrab());
+//                    HandleCheck(controller.RightControllerTransform(), controller.RightGrab());
                     break;
             }
         }
@@ -106,13 +106,11 @@ namespace FlipCrinRob.Scripts
         private void MidpointCalculation(Transform a, Transform b)
         {
             float depth = Vector3.Distance(a.position, b.position) / 2;
-            midpoint.transform.localPosition = Vector3.Lerp(midpoint.transform.localPosition, new Vector3(0, 0, depth), .3f);
+            midpoint.transform.localPosition = Vector3.Lerp(midpoint.transform.localPosition, new Vector3(0, 0, depth), .1f);
         }
         
         private void HandleCheck(Transform c, bool g)
         {
-            Debug.Log(name + ": " + M);
-            
             if (_distance(c) <= ClipThreshold)
             {
                 EnableDisable(g, g ? 0 : 1, c);
@@ -126,6 +124,7 @@ namespace FlipCrinRob.Scripts
                     return;
                 }
                 EnableDisable(g, Mathf.Lerp(0, .999f, _distance(c)) / maxThreshold, c);
+                M = _distance(c) <= minThreshold ? 0f : _distance(c) * A;
                 if (g) return;
                 EnableDisable(false, 1, c);
             }
