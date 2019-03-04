@@ -31,7 +31,7 @@ namespace FlipCrinRob.Scripts
 
       private Vector3 GetPoint(float t)
       {
-         return transform.TransformPoint(GetPoint(points[0], points[1], points[2], t));
+         return (GetPoint(points[0], points[1], points[2], t));
       }
 
       private static Vector3 GetPoint(Vector3 p0, Vector3 p1, Vector3 p2, float t)

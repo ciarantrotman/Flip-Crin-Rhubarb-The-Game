@@ -23,8 +23,8 @@ Material:
     m_TexEnvs: []
     m_Floats:
     - Vector1_BF46245C: 0
-    - Vector1_CE6A4545: 0.5
-    - Vector1_E3A07276: 0.25
+    - Vector1_CE6A4545: 0.75
+    - Vector1_E3A07276: 0.5
     - Vector1_ECB05B46: 1.37
     - _Activated: 1
     - _ClipThreshold: 1.275
@@ -36,6 +36,6 @@ Material:
     - _DefaultColor: {r: 1, g: 1, b: 1, a: 0.5882353}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _HighlightColor: {r: 0.6367924, g: 1, b: 0.9222569, a: 0.5882353}
-    - _LeftHand: {r: 0.64, g: 0.15, b: 0, a: 0}
+    - _LeftHand: {r: 0, g: 0, b: 0, a: 0}
     - _LimitColor: {r: 0.764151, g: 0.21266466, b: 0.21266466, a: 1}
-    - _RightHand: {r: 0, g: -1.61, b: 0, a: 0}
+    - _RightHand: {r: 0, g: 0, b: 0, a: 0}

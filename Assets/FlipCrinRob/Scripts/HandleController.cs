@@ -8,11 +8,13 @@ namespace FlipCrinRob.Scripts
     public class HandleController : MonoBehaviour
     {
         [SerializeField] private ControllerTransforms controller;
-        [SerializeField] private float minThreshold;
-        [SerializeField] private float maxThreshold;
-        [HideInInspector] public float clipThreshold;
+        private float minThreshold = .1f;
+        private float maxThreshold = .5f;
+        private const float A = 75f;
+        public float ClipThreshold { private get; set; }
         
         private GameObject midpoint;
+        private GameObject midpointParent;
         private Renderer r;
 
         private enum Handle { Left, Center, Right };
@@ -31,16 +33,17 @@ namespace FlipCrinRob.Scripts
         
         private void Start()
         {
+           Debug.Log(name + "[1]: " + ClipThreshold + ", " + minThreshold);
            SetupThresholds();
+           Debug.Log(name + "[2]: " + ClipThreshold + ", " + minThreshold);
            SetupShader();
            SetupLineRender();
            SetupMidpoint();
-           
         }
 
         private void SetupThresholds()
         {
-            minThreshold = clipThreshold;
+            minThreshold = ClipThreshold * .5f;
             maxThreshold = .5f;
         }
         
@@ -48,55 +51,72 @@ namespace FlipCrinRob.Scripts
         {
             r = transform.GetComponent<Renderer>();
             
-            r.material.SetFloat(Threshold, clipThreshold * .75f);
-            r.material.SetFloat(CutThreshold, clipThreshold * 0f);
+            r.material.SetFloat(Threshold, ClipThreshold * .75f);
+            r.material.SetFloat(CutThreshold, ClipThreshold * 0f);
             transform.localScale = new Vector3(
-                clipThreshold, // + ClipThreshold, 
-                clipThreshold, // + ClipThreshold, 
-                clipThreshold);// + ClipThreshold);
+                ClipThreshold, // + ClipThreshold, 
+                ClipThreshold, // + ClipThreshold, 
+                ClipThreshold);// + ClipThreshold);
             r.material.SetFloat(Activated, 1);
         }
 
         private void SetupLineRender()
         {
             lr = gameObject.AddComponent<LineRenderer>();
-            lr.startWidth = .01f;
-            lr.endWidth = .01f;
+            lr.startWidth = .005f;
+            lr.endWidth = .005f;
             lr.material = controller.lineRenderMat;
         }
 
         private void SetupMidpoint()
         {
-            midpoint = new GameObject {name = name + " Midpoint"};
-            midpoint.transform.parent = transform;
+            midpoint = new GameObject {name = name + "_midpoint"};
+            midpointParent = new GameObject {name = name + "_midpointParent"};
+            midpointParent.transform.parent = null;
+            midpoint.transform.parent = midpointParent.transform;
             midpoint.transform.localPosition = Vector3.zero;
             midpoint.transform.localScale = new Vector3(1,1,1);
+            midpointParent.transform.localScale = new Vector3(1,1,1);
         }
         
         private void Update()
         {
             r.material.SetVector(LeftHand, controller.LeftControllerTransform().position);
             r.material.SetVector(RightHand, controller.RightControllerTransform().position);
-
+            
             switch (handle)
             {
                 case Handle.Left:
                     HandleCheck(controller.LeftControllerTransform(), controller.LeftGrab());
+                    MidpointCalculation(transform, controller.LeftControllerTransform());
+                    midpointParent.transform.position = controller.LeftControllerTransform().position;
+                    midpointParent.transform.rotation = controller.LeftControllerTransform().rotation;
                     break;
                 case Handle.Right:
                     HandleCheck(controller.RightControllerTransform(), controller.RightGrab());
+                    MidpointCalculation(transform, controller.RightControllerTransform());
+                    midpointParent.transform.position = controller.RightControllerTransform().position;
+                    midpointParent.transform.rotation = controller.RightControllerTransform().rotation;
                     break;
                 case Handle.Center:
                     break;
             }
         }
+
+        private void MidpointCalculation(Transform a, Transform b)
+        {
+            float depth = Vector3.Distance(a.position, b.position) / 2;
+            midpoint.transform.localPosition = Vector3.Lerp(midpoint.transform.localPosition, new Vector3(0, 0, depth), .3f);
+        }
         
         private void HandleCheck(Transform c, bool g)
         {
-            if (_distance(c) <= clipThreshold)
+            Debug.Log(name + ": " + M);
+            
+            if (_distance(c) <= ClipThreshold)
             {
                 EnableDisable(g, g ? 0 : 1, c);
-                M = _distance(c) <= minThreshold ? 0f : _distance(c) * 50f;
+                M = _distance(c) <= minThreshold ? 0f : _distance(c) * A;
             }
             else
             {
@@ -110,28 +130,20 @@ namespace FlipCrinRob.Scripts
                 EnableDisable(false, 1, c);
             }
         }
-
-        private Vector3 Midpoint(Transform a, Transform b)
-        {
-            DebugLines(transform, midpoint.transform, Color.black);
-            DebugLines(midpoint.transform, b, Color.black);
-            
-            transform.LookAt(b);
-            float depth = Vector3.Distance(a.position, b.position) / 2;
-            midpoint.transform.localPosition = new Vector3(0, 0, depth);
-            return midpoint.transform.position;
-        }
         
         private void EnableDisable(bool toggle, float value, Transform b)
         {
-            Debug.Log(name + toggle);
             r.material.SetFloat(Activated, value);
             Active = toggle;
-            lr.enabled = false;
+            lr.enabled = toggle;
 
             if (!toggle) return;
-            var pos = transform;
-            controller.curve.BezierLineRenderer(lr, pos.position, Midpoint(pos, b), b.position, 15);
+            controller.curve.BezierLineRenderer(lr, b.position, Midpoint(), transform.position, 15);
+        }
+        
+        private Vector3 Midpoint()
+        {            
+            return midpoint.transform.position;
         }
         
         private float _distance(Transform c)

@@ -6,22 +6,22 @@ namespace FlipCrinRob.Scripts
 {
     public class VehicleController : MonoBehaviour
     {
-        [SerializeField] private ControllerTransforms _controller;
+        [SerializeField] private ControllerTransforms controller;
         
-        [SerializeField] private HandleController _lHandle;
-        [SerializeField] private HandleController _cHandle;
-        [SerializeField] private HandleController _rHandle;
+        [SerializeField] private HandleController lHandle;
+        [SerializeField] private HandleController cHandle;
+        [SerializeField] private HandleController rHandle;
 
-        [SerializeField] private float _dual;
-        [SerializeField] private float _mono;
+        [SerializeField] private float dual;
+        [SerializeField] private float mono;
 
-        [SerializeField] private Rigidbody _rb;
+        [SerializeField] private Rigidbody rb;
 
-        [SerializeField] private TextMeshPro _speedText;
+        [SerializeField] private TextMeshPro speedText;
 
-        [SerializeField] private Transform _l;
-        [SerializeField] private Transform _r;
-        [SerializeField] private Transform _v;
+        [SerializeField] private Transform l;
+        [SerializeField] private Transform r;
+        [SerializeField] private Transform v;
 
         private bool lActive;
         private bool cActive;
@@ -34,16 +34,16 @@ namespace FlipCrinRob.Scripts
 
         private void Start()
         {
-            _lHandle.clipThreshold = _dual;
-            _cHandle.clipThreshold = _mono;
-            _rHandle.clipThreshold = _dual;
+            lHandle.ClipThreshold = dual;
+            cHandle.ClipThreshold = mono;
+            rHandle.ClipThreshold = dual;
         }
 
         private void Update()
         {
-            lActive = _lHandle.Active;
-            cActive = _cHandle.Active;
-            rActive = _rHandle.Active;
+            lActive = lHandle.Active;
+            cActive = cHandle.Active;
+            rActive = rHandle.Active;
         }
 
         private void FixedUpdate()
@@ -69,35 +69,35 @@ namespace FlipCrinRob.Scripts
             {
                 float proportionalHeight = (HoverHeight - hit.distance) / HoverHeight;
                 Vector3 appliedHoverForce = Vector3.up * proportionalHeight * HoverForce;
-                _rb.AddForce(appliedHoverForce, ForceMode.Acceleration);
+                rb.AddForce(appliedHoverForce, ForceMode.Acceleration);
             }
         }
 
         private void DualMovement()
         {
-            _l.localRotation = _controller.LeftControllerTransform().localRotation;
-            _r.localRotation = _controller.RightControllerTransform().localRotation;
-            var averageRotation = _v.localRotation;
+            l.localRotation = controller.LeftControllerTransform().localRotation;
+            r.localRotation = controller.RightControllerTransform().localRotation;
+            var averageRotation = v.localRotation;
             
             averageRotation = Quaternion.Lerp(averageRotation, 
                 Quaternion.Lerp(
-                    _controller.LeftControllerTransform().localRotation, 
-                    _controller.RightControllerTransform().localRotation, 
+                    controller.LeftControllerTransform().localRotation, 
+                    controller.RightControllerTransform().localRotation, 
                     .5f), 
                 .1f);
             
-            _v.localRotation = averageRotation;
+            v.localRotation = averageRotation;
 
-            _rb.AddForce(_controller.LeftForwardvector() * _lHandle.M);
-            _rb.AddForce(_controller.RightForwardvector() * _rHandle.M);               
-            _rb.AddTorque(transform.up * averageRotation.y * R);
+            rb.AddForce(controller.LeftForwardvector() * lHandle.M);
+            rb.AddForce(controller.RightForwardvector() * rHandle.M);               
+            rb.AddTorque(transform.up * averageRotation.y * R);
                 
-            _speedText.SetText(_lHandle.M +  " | " + _rHandle.M);
+            speedText.SetText(lHandle.M +  " | " + rHandle.M);
         }
 
         private void MonoMovement()
         {
-            _rb.AddForce(transform.TransformVector(transform.forward) * _cHandle.M);
+            rb.AddForce(transform.TransformVector(transform.forward) * cHandle.M);
         }
     }
 }
