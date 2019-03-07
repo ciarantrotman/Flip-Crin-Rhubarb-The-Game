@@ -6,6 +6,7 @@ namespace FlipCrinRob.Scripts
 {
     public class VehicleController : MonoBehaviour
     {
+        [SerializeField] private bool debug;
         [SerializeField] private ControllerTransforms controller;
         
         [SerializeField] private HandleController lHandle;
@@ -31,10 +32,10 @@ namespace FlipCrinRob.Scripts
 
         private const float R = 7f;
 
-        private const float HoverHeight = .5f;
-        private const float HoverForce = 25f;
-        private const float RightingThreshold = 20f;
-        private const float RightingForce = 10f;
+        private const float HoverHeight = 1f;
+        private const float HoverForce = 5f;
+        private const float RightingThreshold = 30f;
+        private const float RightingForce = .5f;
 
         private void Start()
         {
@@ -52,16 +53,7 @@ namespace FlipCrinRob.Scripts
 
         private void FixedUpdate()
         {
-            foreach (var x in thrusters)
-            {
-                //Hover.HoverVector(rb, x, HoverHeight, HoverForce, ForceMode.Acceleration);
-            }
-
-            var t = transform;
-            var rotation = t.rotation;
-            
-            SelfRighting.Right(rb, rotation.x, t, t.right, RightingThreshold, RightingForce);
-            SelfRighting.Right(rb, rotation.z, t, t.forward, RightingThreshold, RightingForce);
+            ConstantForces(ForceMode.Acceleration);
             
             if (lActive && rActive)
             {
@@ -103,6 +95,16 @@ namespace FlipCrinRob.Scripts
         private static Vector3 NormalisedForwardVector(Vector3 v, float d)
         {
             return new Vector3(v.x, v.y * d, v.z);
+        }
+
+        private void ConstantForces(ForceMode type)
+        {
+            foreach (var x in thrusters)
+            {
+                Hover.HoverVector(rb, x, HoverHeight, HoverForce, type, debug);
+            }
+            
+            SelfRighting.Right(rb, transform, RightingThreshold, RightingForce, type, debug);
         }
     }
 }

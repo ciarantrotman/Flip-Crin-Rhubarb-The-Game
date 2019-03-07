@@ -10,7 +10,7 @@ namespace FlipCrinRob.Scripts
         [SerializeField] private ControllerTransforms controller;
         private float minThreshold = .1f;
         private float maxThreshold = .5f;
-        private const float A = 25f;
+        private const float A = 40f;
         public float ClipThreshold { private get; set; }
         
         private GameObject midpoint;

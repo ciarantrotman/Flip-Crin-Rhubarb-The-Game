@@ -7,32 +7,32 @@ namespace FlipCrinRob.Scripts
 {
     public static class SelfRighting
     {
-        public static void Right(Rigidbody rb, float rotation, Transform transform, Vector3 direction, float threshold, float force)
+        public static void Right(Rigidbody rb, Transform transform, float threshold, float force, ForceMode type, bool debug)
         {
             var aUp = Vector3.Angle(Vector3.up, transform.up);
-            DrawRays(transform);
+
+            if (debug)
+            {
+                DrawRays(transform);
+            }
             
             if (aUp < threshold) return;
-            
-            switch (rotation < 0)
+
+            var rightingAxis = Vector3.Cross(transform.up, Vector3.up);
+            rb.AddTorque(rightingAxis * aUp * force, type);
+
+            if (debug)
             {
-                case true:
-                    rb.AddTorque(direction * force);
-                    break;
-                case false:
-                    rb.AddTorque(-direction * force);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                Debug.DrawRay(transform.position, rightingAxis * aUp * force, Color.cyan);
             }
         }
 
         private static void DrawRays(Transform t)
         {
             var position = t.position;
-            Debug.DrawRay(position, Vector3.up, Color.green);
-            Debug.DrawRay(position, Vector3.forward, Color.blue);
-            Debug.DrawRay(position, Vector3.right, Color.red);
+            Debug.DrawRay(position, Vector3.up*.5f, Color.green);
+            Debug.DrawRay(position, Vector3.forward*.5f, Color.blue);
+            Debug.DrawRay(position, Vector3.right*.5f, Color.red);
             Debug.DrawRay(position, t.up, Color.green);
             Debug.DrawRay(position, t.forward, Color.blue);
             Debug.DrawRay(position, t.right, Color.red);
