@@ -87,26 +87,26 @@ namespace FlipCrinRob.Scripts
                 case Handle.Left:
                     HandleCheck(controller.LeftControllerTransform(), controller.LeftGrab());
                     MidpointCalculation(transform, controller.LeftControllerTransform());
-                    midpointParent.transform.position = controller.LeftControllerTransform().position;
-                    midpointParent.transform.rotation = controller.LeftControllerTransform().rotation;
+                    SetTransform.Follow(midpointParent.transform, controller.LeftControllerTransform());
                     break;
                 case Handle.Right:
                     HandleCheck(controller.RightControllerTransform(), controller.RightGrab());
                     MidpointCalculation(transform, controller.RightControllerTransform());
-                    midpointParent.transform.position = controller.RightControllerTransform().position;
-                    midpointParent.transform.rotation = controller.RightControllerTransform().rotation;
+                    SetTransform.Follow(midpointParent.transform, controller.RightControllerTransform());
                     break;
                 case Handle.Center:
 //                    HandleCheck(controller.LeftControllerTransform(), controller.LeftGrab());
 //                    HandleCheck(controller.RightControllerTransform(), controller.RightGrab());
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
         private void MidpointCalculation(Transform a, Transform b)
         {
-            float depth = Vector3.Distance(a.position, b.position) / 2;
-            midpoint.transform.localPosition = Vector3.Lerp(midpoint.transform.localPosition, new Vector3(0, 0, depth), .1f);
+            var depth = Vector3.Distance(a.position, b.position) / 2;
+            midpoint.transform.localPosition = new Vector3(0, 0, depth);
         }
         
         private void HandleCheck(Transform c, bool g)
@@ -137,7 +137,7 @@ namespace FlipCrinRob.Scripts
             lr.enabled = toggle;
 
             if (!toggle) return;
-            controller.curve.BezierLineRenderer(lr, b.position, Midpoint(), transform.position, 15);
+            BezierCurve.BezierLineRenderer(lr, b.position, Midpoint(), transform.position, 15);
         }
         
         private Vector3 Midpoint()
@@ -148,11 +148,6 @@ namespace FlipCrinRob.Scripts
         private float _distance(Transform c)
         {
             return Vector3.Distance(transform.position, c.position);
-        }
-
-        private static void DebugLines(Transform a, Transform b, Color c)
-        {
-            Debug.DrawLine(a.position, b.position, c);
         }
     }
 }

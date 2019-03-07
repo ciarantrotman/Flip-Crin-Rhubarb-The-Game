@@ -5,57 +5,56 @@ namespace FlipCrinRob.Scripts
 {
     public class ControllerTransforms : MonoBehaviour
     {
-        [SerializeField] private Transform _l;
-        [SerializeField] private Transform _r;
-        [SerializeField] private bool _debugActive;
-        [SerializeField] public BezierCurve curve;
+        [SerializeField] private Transform l;
+        [SerializeField] private Transform r;
+        [SerializeField] private bool debugActive;
         [SerializeField] public Material lineRenderMat;
-        public SteamVR_Action_Boolean GrabGrip;
+        public SteamVR_Action_Boolean grabGrip;
 
         public Transform LeftControllerTransform()
         {
-            if (_debugActive)
+            if (debugActive)
             {
-                Debug.Log(_l);
+                Debug.Log(l);
             }
-            return _l;
+            return l;
         }
     
         public Transform RightControllerTransform()
         {
-            if (_debugActive)
+            if (debugActive)
             {
-                Debug.Log(_r);
+                Debug.Log(r);
             }
-            return _r;
+            return r;
         }
 
         public bool LeftGrab()
         {
-            if (_debugActive)
+            if (debugActive)
             {
-                Debug.Log("Left Grab: " + GrabGrip.GetState(SteamVR_Input_Sources.LeftHand));
+                Debug.Log("Left Grab: " + grabGrip.GetState(SteamVR_Input_Sources.LeftHand));
             }
-            return GrabGrip.GetState(SteamVR_Input_Sources.LeftHand);
+            return grabGrip.GetState(SteamVR_Input_Sources.LeftHand);
         }
     
         public bool RightGrab()
         {
-            if (_debugActive)
+            if (debugActive)
             {
-                Debug.Log("Right Grab: " + GrabGrip.GetState(SteamVR_Input_Sources.RightHand));
+                Debug.Log("Right Grab: " + grabGrip.GetState(SteamVR_Input_Sources.RightHand));
             }
-            return GrabGrip.GetState(SteamVR_Input_Sources.RightHand);
+            return grabGrip.GetState(SteamVR_Input_Sources.RightHand);
         }
 
         public Vector3 LeftForwardvector()
         {
-            return _l.transform.TransformVector(Vector3.forward);
+            return l.transform.TransformVector(Vector3.forward);
         }
     
         public Vector3 RightForwardvector()
         {
-            return _r.transform.TransformVector(Vector3.forward);
+            return r.transform.TransformVector(Vector3.forward);
         }
     }
 }

@@ -1,6 +1,6 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
-using Valve.VR;
 
 namespace FlipCrinRob.Scripts
 {
@@ -23,14 +23,18 @@ namespace FlipCrinRob.Scripts
         [SerializeField] private Transform r;
         [SerializeField] private Transform v;
 
+        [SerializeField] private List<Transform> thrusters;
+
         private bool lActive;
         private bool cActive;
         private bool rActive;
 
-        private const float R = 5f;
+        private const float R = 7f;
 
-        private const float HoverHeight = .35f;
-        private const float HoverForce = 20f;
+        private const float HoverHeight = .5f;
+        private const float HoverForce = 25f;
+        private const float RightingThreshold = 20f;
+        private const float RightingForce = 10f;
 
         private void Start()
         {
@@ -48,7 +52,16 @@ namespace FlipCrinRob.Scripts
 
         private void FixedUpdate()
         {
-            Hover();
+            foreach (var x in thrusters)
+            {
+                //Hover.HoverVector(rb, x, HoverHeight, HoverForce, ForceMode.Acceleration);
+            }
+
+            var t = transform;
+            var rotation = t.rotation;
+            
+            SelfRighting.Right(rb, rotation.x, t, t.right, RightingThreshold, RightingForce);
+            SelfRighting.Right(rb, rotation.z, t, t.forward, RightingThreshold, RightingForce);
             
             if (lActive && rActive)
             {
@@ -58,19 +71,6 @@ namespace FlipCrinRob.Scripts
             {
                 MonoMovement();
             }
-        }
-
-        private void Hover()
-        {
-            var trans = transform;
-            var ray = new Ray (trans.position, -trans.up);
-            RaycastHit hit;
-            
-            if (!Physics.Raycast(ray, out hit, HoverHeight)) return;
-            
-            var proportionalHeight = (HoverHeight - hit.distance) / HoverHeight;
-            var appliedHoverForce = Vector3.up * proportionalHeight * HoverForce;
-            rb.AddForce(appliedHoverForce, ForceMode.Acceleration);
         }
 
         private void DualMovement()
@@ -87,17 +87,22 @@ namespace FlipCrinRob.Scripts
                 .1f);
             
             v.localRotation = averageRotation;
-
-            rb.AddForce(controller.LeftForwardvector() * lHandle.M, ForceMode.Acceleration);
-            rb.AddForce(controller.RightForwardvector() * rHandle.M, ForceMode.Acceleration);               
+            
+            rb.AddForce(NormalisedForwardVector(controller.LeftForwardvector(), .25f) * lHandle.M, ForceMode.Acceleration);
+            rb.AddForce(NormalisedForwardVector(controller.RightForwardvector(), .25f) * rHandle.M, ForceMode.Acceleration);               
             rb.AddTorque(transform.up * averageRotation.y * R, ForceMode.Acceleration);
-                
+            
             speedText.SetText("{0:2} | {1:2}",lHandle.M, rHandle.M);
         }
 
         private void MonoMovement()
         {
             rb.AddForce(transform.TransformVector(transform.forward) * cHandle.M);
+        }
+
+        private static Vector3 NormalisedForwardVector(Vector3 v, float d)
+        {
+            return new Vector3(v.x, v.y * d, v.z);
         }
     }
 }
