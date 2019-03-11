@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEngine;
 
@@ -6,8 +7,8 @@ namespace FlipCrinRob.Scripts
 {
     public class VehicleController : MonoBehaviour
     {
-        [SerializeField] private bool debug;
         [SerializeField] private ControllerTransforms controller;
+        [SerializeField] private Transform camera;
         
         [SerializeField] private HandleController lHandle;
         [SerializeField] private HandleController cHandle;
@@ -24,24 +25,32 @@ namespace FlipCrinRob.Scripts
         [SerializeField] private Transform r;
         [SerializeField] private Transform v;
 
-        [SerializeField] private List<Transform> thrusters;
-
+        [SerializeField] private Transform thrusters;
+        public GameObject HandleVisual;
+        
         private bool lActive;
         private bool cActive;
         private bool rActive;
 
-        private const float R = 7f;
-
+        private const float R = 10f;
         private const float HoverHeight = 1f;
-        private const float HoverForce = 5f;
-        private const float RightingThreshold = 30f;
-        private const float RightingForce = .5f;
+        private const float HoverForce = 7f;
+        private const float RightingThreshold = 0f;
+        private const float RightingForce = 2f;
+        private const float UpwardForce = 1f;
+        private const float UpwardHeight = 1f;
 
         private void Start()
         {
             lHandle.ClipThreshold = dual;
             cHandle.ClipThreshold = mono;
             rHandle.ClipThreshold = dual;
+            SetPosition(camera.localPosition, transform.localPosition);
+        }
+
+        private void SetPosition(Vector3 a, Vector3 b)
+        {
+            transform.localPosition = new Vector3(a.x, b.y, a.z + .5f);
         }
 
         private void Update()
@@ -80,8 +89,8 @@ namespace FlipCrinRob.Scripts
             
             v.localRotation = averageRotation;
             
-            rb.AddForce(NormalisedForwardVector(controller.LeftForwardvector(), .25f) * lHandle.M, ForceMode.Acceleration);
-            rb.AddForce(NormalisedForwardVector(controller.RightForwardvector(), .25f) * rHandle.M, ForceMode.Acceleration);               
+            rb.AddForce(NormalisedForwardVector(controller.LeftForwardVector(), .25f) * lHandle.M, ForceMode.Acceleration);
+            rb.AddForce(NormalisedForwardVector(controller.RightForwardVector(), .25f) * rHandle.M, ForceMode.Acceleration);               
             rb.AddTorque(transform.up * averageRotation.y * R, ForceMode.Acceleration);
             
             speedText.SetText("{0:2} | {1:2}",lHandle.M, rHandle.M);
@@ -99,12 +108,13 @@ namespace FlipCrinRob.Scripts
 
         private void ConstantForces(ForceMode type)
         {
-            foreach (var x in thrusters)
+            foreach (Transform x in thrusters)
             {
-                Hover.HoverVector(rb, x, HoverHeight, HoverForce, type, debug);
+                Hover.HoverVector(rb, x, HoverHeight, HoverForce, type, controller.debugActive);
             }
             
-            SelfRighting.Right(rb, transform, RightingThreshold, RightingForce, type, debug);
+            SelfRighting.Torque(rb, transform, RightingThreshold, RightingForce, type, controller.debugActive);
+            //SelfRighting.Upward(rb, transform, UpwardHeight, UpwardForce, type, debug);
         }
     }
 }

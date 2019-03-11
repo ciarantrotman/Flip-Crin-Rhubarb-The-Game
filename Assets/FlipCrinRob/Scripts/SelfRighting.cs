@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace FlipCrinRob.Scripts
 {
     public static class SelfRighting
     {
-        public static void Right(Rigidbody rb, Transform transform, float threshold, float force, ForceMode type, bool debug)
+        public static void Torque(Rigidbody rb, Transform transform, float threshold, float force, ForceMode type, bool debug)
         {
             var aUp = Vector3.Angle(Vector3.up, transform.up);
 
@@ -24,6 +22,19 @@ namespace FlipCrinRob.Scripts
             if (debug)
             {
                 Debug.DrawRay(transform.position, rightingAxis * aUp * force, Color.cyan);
+            }
+        }
+
+        public static void Upward(Rigidbody rb, Transform transform, float height, float force, ForceMode type, bool debug)
+        {
+            var localPosition = transform.position;
+            var adjustedPos = new Vector3(localPosition.x, localPosition.y + height, localPosition.z);
+            
+            rb.AddForceAtPosition(Vector3.up * force,adjustedPos, type);
+
+            if (debug)
+            {
+                Debug.DrawRay(adjustedPos, Vector3.up, Color.yellow);
             }
         }
 

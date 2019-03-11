@@ -12,6 +12,7 @@
             <e p="BezierCurve.cs" t="Include" />
             <e p="ControllerTransforms.cs" t="Include" />
             <e p="HandleController.cs" t="Include" />
+            <e p="Haptics.cs" t="Include" />
             <e p="Hover.cs" t="Include" />
             <e p="SelfRighting.cs" t="Include" />
             <e p="SetTransform.cs" t="Include" />
