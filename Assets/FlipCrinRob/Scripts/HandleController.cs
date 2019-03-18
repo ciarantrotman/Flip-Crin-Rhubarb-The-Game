@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Valve.VR;
@@ -9,45 +10,46 @@ namespace FlipCrinRob.Scripts
     [RequireComponent(typeof(Renderer))]
     public class HandleController : MonoBehaviour
     {
-        [SerializeField] private ControllerTransforms controller;
-        [SerializeField] private VehicleController vehicle;
+        [TabGroup("References")][SerializeField] private ControllerTransforms controller;
+        [TabGroup("References")][SerializeField] private VehicleController vehicle;
+        private enum Handle { Left, Center, Right };
+        [TabGroup("Settings")][SerializeField] private Handle handle;
+       
+        public Renderer HandleRenderer { get; private set; } 
+        public bool Active { get; private set; }
+        public float M { get; private set; }
+        
         private float minThreshold = .1f;
         private float maxThreshold = .5f;
         public float ClipThreshold { private get; set; }
         private float clipThreshold;
         private const float DirectThreshold = .1f;
-        
         private GameObject midpoint;
         private GameObject midpointParent;
         private Renderer r;
-
-        private enum Handle { Left, Center, Right };
-        [SerializeField] private Handle handle;
+       
         private GameObject handleVisual;
         private const float LerpSpeed = .7f;
-        
+        private const float SmoothnessMax = .35f;
+        private const float SmoothnessMin = 1f;
         private static readonly int Threshold = Shader.PropertyToID("_ClipThreshold");
         private static readonly int CutThreshold = Shader.PropertyToID("_CutThreshold");
         private static readonly int LeftHand = Shader.PropertyToID("_LeftHand");
         private static readonly int RightHand = Shader.PropertyToID("_RightHand");
         private static readonly int Activated = Shader.PropertyToID("_Activated");
-
+        private static readonly int Smoothness = Shader.PropertyToID("_Smoothness"); 
         private LineRenderer lr;
         private LineRenderer vlr;
-        
-        public bool Active { get; private set; }
-        public float M { get; private set; }
+
         private const float A = 100f;
-        
         private void Start()
         {
+           HandleRenderer = GetComponent<Renderer>();
            SetupThresholds();
-           SetupShader();
            SetupLineRender(gameObject);
            SetupMidpoint();
            SetupVisual();
         }
-
         private void SetupThresholds()
         {
             minThreshold = ClipThreshold * .5f;
@@ -55,15 +57,14 @@ namespace FlipCrinRob.Scripts
         }
         private void SetupShader()
         {
-            r = transform.GetComponent<Renderer>();
-            
-            r.material.SetFloat(Threshold, ClipThreshold * .75f);
-            r.material.SetFloat(CutThreshold, ClipThreshold * 0f);
+            HandleRenderer.material.SetFloat(Threshold, ClipThreshold * .75f);
+            HandleRenderer.material.SetFloat(CutThreshold, ClipThreshold * 0f);
             transform.localScale = new Vector3(
                 ClipThreshold, // + ClipThreshold, 
                 ClipThreshold, // + ClipThreshold, 
                 ClipThreshold);// + ClipThreshold);
-            r.material.SetFloat(Activated, 1);
+//            Debug.Log(name + ", " + ClipThreshold + "/" + transform.localScale.x);
+            HandleRenderer.material.SetFloat(Activated, 1);
         }
         private void SetupLineRender(GameObject parent)
         {
@@ -84,7 +85,7 @@ namespace FlipCrinRob.Scripts
         }
         private void SetupVisual()
         {
-            handleVisual = Instantiate(vehicle.HandleVisual);
+            handleVisual = Instantiate(vehicle.handleVisual);
             handleVisual.transform.position = transform.position;
             handleVisual.name = name + "_Visual";
             vlr = handleVisual.AddComponent<LineRenderer>();
@@ -98,22 +99,25 @@ namespace FlipCrinRob.Scripts
             {
                 Haptics.Constant(controller.haptic, 150, 75, controller.LeftSource());
             }
-            r.material.SetVector(LeftHand, controller.LeftControllerTransform().position);
-            r.material.SetVector(RightHand, controller.RightControllerTransform().position);
+            //r.material.SetVector(LeftHand, controller.LeftControllerTransform().position);
+            //r.material.SetVector(RightHand, controller.RightControllerTransform().position);
+            SetupShader();
             
             switch (handle)
             {
                 case Handle.Left:
                     HandleCheck(controller.LeftControllerTransform(), controller.LeftGrab(), controller.LeftSource());
                     MidpointCalculation(transform, controller.LeftControllerTransform());
-                    Visual(controller.LeftControllerTransform(), handleVisual.transform, controller.LeftGrab());
                     SetTransform.Follow(midpointParent.transform, controller.LeftControllerTransform());
+                    Visual(controller.LeftControllerTransform(), handleVisual.transform, controller.LeftGrab());
+                    SetSmoothness(controller.LeftControllerTransform());
                     break;
                 case Handle.Right:
                     HandleCheck(controller.RightControllerTransform(), controller.RightGrab(), controller.RightSource());
                     MidpointCalculation(transform, controller.RightControllerTransform());
                     SetTransform.Follow(midpointParent.transform, controller.RightControllerTransform());
                     Visual(controller.RightControllerTransform(), handleVisual.transform, controller.RightGrab());
+                    SetSmoothness(controller.RightControllerTransform());
                     break;
                 case Handle.Center:
 //                    HandleCheck(controller.LeftControllerTransform(), controller.LeftGrab());
@@ -150,7 +154,7 @@ namespace FlipCrinRob.Scripts
         }
         private void EnableDisable(bool toggle, float value, Transform b)
         {
-            r.material.SetFloat(Activated, value);
+            //r.material.SetFloat(Activated, value);
             Active = toggle;
             lr.enabled = toggle;
             if (!toggle) return;
@@ -173,6 +177,13 @@ namespace FlipCrinRob.Scripts
             }
             vlr.SetPosition(0, x.position);
             vlr.SetPosition(1, transform.position);
+        }
+
+        private void SetSmoothness(Transform c)
+        {
+            if (_distance(c) > .5f) return;
+            var s = Mathf.Lerp(SmoothnessMax, SmoothnessMin, _distance(c));
+            HandleRenderer.material.SetFloat(Smoothness, s);
         }
         private Vector3 Midpoint()
         {            

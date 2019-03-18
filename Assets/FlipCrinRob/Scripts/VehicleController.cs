@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 
@@ -7,32 +9,32 @@ namespace FlipCrinRob.Scripts
 {
     public class VehicleController : MonoBehaviour
     {
-        [SerializeField] private ControllerTransforms controller;
-        [SerializeField] private Transform camera;
+        [TabGroup("References")][SerializeField] private ControllerTransforms controller;
+        [TabGroup("References")][SerializeField] private HandleController lHandle;
+        [TabGroup("References")][SerializeField] private HandleController cHandle;
+        [TabGroup("References")][SerializeField] private HandleController rHandle;
+        [TabGroup("References")][SerializeField] private TextMeshPro speedText;
+        [TabGroup("References")][SerializeField] private Transform l;
+        [TabGroup("References")][SerializeField] private Transform r;
+        [TabGroup("References")][SerializeField] private Transform v;
+        [TabGroup("References")][SerializeField] private Transform thrusters;
         
-        [SerializeField] private HandleController lHandle;
-        [SerializeField] private HandleController cHandle;
-        [SerializeField] private HandleController rHandle;
+        [TabGroup("Settings")][SerializeField] private float dual;
+        [TabGroup("Settings")][SerializeField] private float mono;
+        
+        [TabGroup("Aesthetics")]public GameObject handleVisual;
+        private enum HandleMaterial { ProximityShader, Translucent };
+        [TabGroup("Aesthetics")][SerializeField] private HandleMaterial mat;
+        [TabGroup("Aesthetics")][SerializeField] private Material proximityShader;
+        [TabGroup("Aesthetics")][SerializeField] private Material translucent;
 
-        [SerializeField] private float dual;
-        [SerializeField] private float mono;
-
-        [SerializeField] private Rigidbody rb;
-
-        [SerializeField] private TextMeshPro speedText;
-
-        [SerializeField] private Transform l;
-        [SerializeField] private Transform r;
-        [SerializeField] private Transform v;
-
-        [SerializeField] private Transform thrusters;
-        public GameObject HandleVisual;
+        private Rigidbody rb;
         
         private bool lActive;
         private bool cActive;
         private bool rActive;
 
-        private const float R = 10f;
+        public float R = 10f;
         private const float HoverHeight = 1f;
         private const float HoverForce = 7f;
         private const float RightingThreshold = 0f;
@@ -42,10 +44,28 @@ namespace FlipCrinRob.Scripts
 
         private void Start()
         {
-            lHandle.ClipThreshold = dual;
-            cHandle.ClipThreshold = mono;
-            rHandle.ClipThreshold = dual;
-            SetPosition(camera.localPosition, transform.localPosition);
+            rb = controller.transform.GetComponent<Rigidbody>();
+            SetPosition(controller.CameraPosition(), transform.localPosition);
+            switch (mat)
+            {
+                case HandleMaterial.Translucent:
+                    SetMaterial(lHandle.HandleRenderer, translucent);
+                    SetMaterial(rHandle.HandleRenderer, translucent);
+                    SetMaterial(cHandle.HandleRenderer, translucent);
+                    break;
+                case HandleMaterial.ProximityShader:
+                    SetMaterial(lHandle.HandleRenderer, proximityShader);
+                    SetMaterial(rHandle.HandleRenderer, proximityShader);
+                    SetMaterial(cHandle.HandleRenderer, proximityShader);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private static void SetMaterial(Renderer r, Material m)
+        {
+            r.material = m;
         }
 
         private void SetPosition(Vector3 a, Vector3 b)
@@ -58,8 +78,17 @@ namespace FlipCrinRob.Scripts
             lActive = lHandle.Active;
             cActive = cHandle.Active;
             rActive = rHandle.Active;
+            
+            SetHandleValues(lHandle, dual);
+            SetHandleValues(rHandle, dual);
+            SetHandleValues(cHandle, mono);
         }
 
+        private static void SetHandleValues(HandleController h, float f)
+        {
+            h.ClipThreshold = f;
+        }
+        
         private void FixedUpdate()
         {
             ConstantForces(ForceMode.Acceleration);

@@ -1,33 +1,40 @@
-﻿using UnityEngine;
+﻿using Sirenix.OdinInspector;
+using UnityEngine;
 using Valve.VR;
 
 namespace FlipCrinRob.Scripts
 {
     public class ControllerTransforms : MonoBehaviour
     {
-        [SerializeField] private Transform l;
-        [SerializeField] private Transform r;
         [SerializeField] public bool debugActive;
-        [SerializeField] public Material lineRenderMat;
-        public SteamVR_Action_Boolean grabGrip;
-        public SteamVR_Action_Vibration haptic;
+        
+        [TabGroup("Transforms")][SerializeField] private Transform l;
+        [TabGroup("Transforms")][SerializeField] private Transform r;
+        [TabGroup("Transforms")][SerializeField] private Transform h;
+        
+        [TabGroup("SteamVR")]public SteamVR_Action_Boolean grabGrip;
+        [TabGroup("SteamVR")]public SteamVR_Action_Vibration haptic;
+       
+        [TabGroup("Aesthetics")][SerializeField] public Material lineRenderMat;
         
         public Transform LeftControllerTransform()
         {
-            if (debugActive)
-            {
-                Debug.Log(l);
-            }
             return l;
         }
     
         public Transform RightControllerTransform()
         {
-            if (debugActive)
-            {
-                Debug.Log(r);
-            }
             return r;
+        }
+
+        public Transform CameraTransform()
+        {
+            return h;
+        }
+
+        public Vector3 CameraPosition()
+        {
+            return h.position;
         }
 
         public bool LeftGrab()
@@ -56,6 +63,11 @@ namespace FlipCrinRob.Scripts
         public Vector3 RightForwardVector()
         {
             return r.transform.TransformVector(Vector3.forward);
+        }
+
+        public Vector3 CameraForwardVector()
+        {
+            return h.forward;
         }
 
         public SteamVR_Input_Sources LeftSource()
