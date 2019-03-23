@@ -13,6 +13,7 @@ namespace FlipCrinRob.Scripts
         [TabGroup("Transforms")][SerializeField] private Transform h;
         
         [TabGroup("SteamVR")]public SteamVR_Action_Boolean grabGrip;
+        [TabGroup("SteamVR")]public SteamVR_Action_Boolean triggerGrip;
         [TabGroup("SteamVR")]public SteamVR_Action_Vibration haptic;
        
         [TabGroup("Aesthetics")][SerializeField] public Material lineRenderMat;
@@ -39,20 +40,22 @@ namespace FlipCrinRob.Scripts
 
         public bool LeftGrab()
         {
-            if (debugActive)
-            {
-                Debug.Log("Left Grab: " + grabGrip.GetState(SteamVR_Input_Sources.LeftHand));
-            }
             return grabGrip.GetState(SteamVR_Input_Sources.LeftHand);
         }
     
         public bool RightGrab()
         {
-            if (debugActive)
-            {
-                Debug.Log("Right Grab: " + grabGrip.GetState(SteamVR_Input_Sources.RightHand));
-            }
             return grabGrip.GetState(SteamVR_Input_Sources.RightHand);
+        }
+
+        public bool LeftSelect()
+        {
+            return triggerGrip.GetState(SteamVR_Input_Sources.LeftHand);
+        }
+        
+        public bool RightSelect()
+        {
+            return triggerGrip.GetState(SteamVR_Input_Sources.RightHand);
         }
 
         public Vector3 LeftForwardVector()

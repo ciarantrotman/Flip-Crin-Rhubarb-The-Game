@@ -7,6 +7,8 @@ namespace FlipCrinRob.Scripts
     {
         private const float Min = .15f;
         private const float Max = .65f;
+        private GameObject parent;
+        
         private GameObject lH;
         private GameObject rH;
         private GameObject lC;
@@ -40,11 +42,14 @@ namespace FlipCrinRob.Scripts
 
         private void SetupGameObjects()
         {
+            parent = new GameObject("TeleportGameobjects");
+            var p = parent.transform;
+            
             lH = new GameObject("lH");
-            lH.transform.SetParent(transform);
+            lH.transform.SetParent(p);
             
             rH = new GameObject("rH");
-            rH.transform.SetParent(transform);
+            rH.transform.SetParent(p);
             
             lC = new GameObject("lC");
             lC.transform.SetParent(lH.transform);
@@ -65,17 +70,40 @@ namespace FlipCrinRob.Scripts
             rS.transform.SetParent(rH.transform);
             
             cL = new GameObject("cL");
+            cL.transform.SetParent(p);
+            
             lN = new GameObject("lN");
+            lN.transform.SetParent(p);
+            
             cR = new GameObject("cR");
+            cR.transform.SetParent(p);
+            
             rN = new GameObject("rN");
+            rN.transform.SetParent(p);
+            
             lP = new GameObject("lP");
+            lP.transform.SetParent(p);
+            
             rP = new GameObject("rP");
+            rP.transform.SetParent(p);
+            
             lA = new GameObject("lA");
+            lA.transform.SetParent(p);
+            
             rA = new GameObject("rA");
+            rA.transform.SetParent(p);
+            
             lX = new GameObject("lX");
+            lX.transform.SetParent(p); 
+            
             rX = new GameObject("rX");
+            rX.transform.SetParent(p);
+            
             lF = new GameObject("lF");
+            lF.transform.SetParent(p);
+            
             rF = new GameObject("rF");
+            rF.transform.SetParent(p);
         }
 
         private void Update()

@@ -4,7 +4,9 @@
     <e p="C:\Users\ciara\.Rider2018.3\system\extResources" t="IncludeRecursive" />
     <e p="C:\Users\ciara\.Rider2018.3\system\resharper-host\local\Transient\ReSharperHost\v183\SolutionCaches\_HDRP Sketch.-1553040449.00" t="ExcludeRecursive" />
     <e p="S:\Personal\Projects\Unity Development\HDRP Sketches\HDRP Sketch" t="IncludeRecursive">
+      <e p="Assembly-CSharp-Editor-firstpass.csproj" t="IncludeRecursive" />
       <e p="Assembly-CSharp-Editor.csproj" t="IncludeRecursive" />
+      <e p="Assembly-CSharp-firstpass.csproj" t="IncludeRecursive" />
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
         <e p="FlipCrinRob" t="Include">
@@ -12,13 +14,15 @@
             <e p="BezierCurve.cs" t="Include" />
             <e p="ControllerTransforms.cs" t="Include" />
             <e p="FollowLerp.cs" t="Include" />
-            <e p="FreeManipulation.cs" t="Include" />
+            <e p="FreeRotation.cs" t="Include" />
             <e p="HandleController.cs" t="Include" />
             <e p="Haptics.cs" t="Include" />
             <e p="Hover.cs" t="Include" />
-            <e p="IndirectObjectSelection.cs" t="Include" />
             <e p="Intersection.cs" t="Include" />
             <e p="InverseLerp.cs" t="Include" />
+            <e p="Manipulation.cs" t="Include" />
+            <e p="ObjectMethods.cs" t="Include" />
+            <e p="ObjectSelection.cs" t="Include" />
             <e p="RubberbandedObject.cs" t="Include" />
             <e p="SelectableObject.cs" t="Include" />
             <e p="SelfRighting.cs" t="Include" />
@@ -26,14 +30,51 @@
             <e p="SetTransform.cs" t="Include" />
             <e p="Setup.cs" t="Include" />
             <e p="SimpleCameraController.cs" t="Include" />
+            <e p="SortBy.cs" t="Include" />
             <e p="Teleport.cs" t="Include" />
             <e p="VehicleController.cs" t="Include" />
           </e>
         </e>
-        <e p="MeshToSDF" t="Include">
-          <e p="JumpFloodAssignment.compute" t="Include" />
-          <e p="MeshToSDF.cs" t="Include" />
-          <e p="MeshToVoxel.compute" t="Include" />
+        <e p="Plugins" t="Include">
+          <e p="Demigiant" t="Include">
+            <e p="DemiLib" t="Include">
+              <e p="Core" t="Include">
+                <e p="DemiLib.xml" t="Include" />
+                <e p="Editor" t="Include">
+                  <e p="DemiEditor.xml" t="Include" />
+                </e>
+              </e>
+            </e>
+            <e p="DOTween" t="Include">
+              <e p="Modules" t="Include">
+                <e p="DOTweenModuleAudio.cs" t="Include" />
+                <e p="DOTweenModulePhysics.cs" t="Include" />
+                <e p="DOTweenModulePhysics2D.cs" t="Include" />
+                <e p="DOTweenModuleSprite.cs" t="Include" />
+                <e p="DOTweenModuleUI.cs" t="Include" />
+                <e p="DOTweenModuleUnityVersion.cs" t="Include" />
+                <e p="DOTweenModuleUtils.cs" t="Include" />
+              </e>
+              <e p="readme.txt" t="Include" />
+            </e>
+            <e p="DOTweenPro" t="Include">
+              <e p="DOTweenAnimation.cs" t="Include" />
+              <e p="DOTweenProShortcuts.cs" t="Include" />
+              <e p="DOTweenTextMeshPro.cs" t="Include" />
+              <e p="DOTweenTk2d.cs" t="Include" />
+              <e p="Editor" t="Include">
+                <e p="DOTweenAnimationInspector.cs" t="Include" />
+                <e p="DOTweenPreviewManager.cs" t="Include" />
+              </e>
+              <e p="readme.txt" t="Include" />
+            </e>
+            <e p="readme_DOTweenPro.txt" t="Include" />
+          </e>
+          <e p="MeshToSDF" t="Include">
+            <e p="JumpFloodAssignment.compute" t="Include" />
+            <e p="MeshToSDF.cs" t="Include" />
+            <e p="MeshToVoxel.compute" t="Include" />
+          </e>
         </e>
         <e p="Sirenix" t="Include">
           <e p="Assemblies" t="Include">
