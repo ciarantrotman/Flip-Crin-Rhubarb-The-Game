@@ -50,9 +50,9 @@ namespace FlipCrinRob.Scripts
 		[TabGroup("Rotation Settings")] public bool enableRotation;
 		[TabGroup("Rotation Settings")] [ShowIf("enableRotation")] [Indent] [Range(0f, 10f)] public float force;
 		
-		[BoxGroup("Snapping")] [SerializeField] private bool distanceSnapping;
-		[BoxGroup("Snapping")] [ShowIf("distanceSnapping")] [Range(0f, 180f)] [Indent] [SerializeField] private float snapDistance = 1.5f;
-		[BoxGroup("Snapping")] [SerializeField] private bool maximumDistance;
+		[BoxGroup("Snapping")] [SerializeField] private bool distanceSnapping = true;
+		[BoxGroup("Snapping")] [ShowIf("distanceSnapping")] [Indent] [Range(0f, 5f)] [SerializeField] private float snapDistance = 1f;
+		[BoxGroup("Snapping")] [ShowIf("distanceSnapping")] [Indent] [SerializeField] private bool maximumDistance;
 		
 		#endregion
 		private void Start () 
@@ -163,11 +163,11 @@ namespace FlipCrinRob.Scripts
 			{
 				case true:
 					ControllerFollowing(con, cFl, cPl, tl);
-					tSl.transform.localPosition = new Vector3(0, 0, MagnifiedDepth(cPl, cOl, oOl, tSl, snapDistance, c.selectionRange - c.selectionRange * .75f, maximumDistance));
+					tSl.transform.localPosition = new Vector3(0, 0, MagnifiedDepth(cPl, cOl, oOl, tSl, snapDistance, c.selectionRange - c.selectionRange * .25f, maximumDistance));
 					break;
 				case false:
 					ControllerFollowing(con, cFr, cPr, tr);
-					tSr.transform.localPosition = new Vector3(0, 0, MagnifiedDepth(cPr, cOr, oOr, tSr, snapDistance, c.selectionRange - c.selectionRange * .75f, maximumDistance));
+					tSr.transform.localPosition = new Vector3(0, 0, MagnifiedDepth(cPr, cOr, oOr, tSr, snapDistance, c.selectionRange - c.selectionRange * .25f, maximumDistance));
 					break;
 				default:
 					throw new ArgumentException();

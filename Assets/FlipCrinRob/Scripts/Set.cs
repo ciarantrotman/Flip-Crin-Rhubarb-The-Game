@@ -101,11 +101,11 @@ namespace FlipCrinRob.Scripts
             rb.AddForce(-x * d, ForceMode.Force);
         }
 
-        public static void RigidBody(Rigidbody rb, float drag, bool stop, bool gravity)
+        public static void RigidBody(Rigidbody rb, float force, float drag, bool stop, bool gravity)
         {
-            rb.mass = drag;
-            rb.drag = 1;
-            rb.angularDrag = 1;
+            rb.mass = force;
+            rb.drag = drag;
+            rb.angularDrag = drag;
             rb.velocity = stop? Vector3.zero : rb.velocity;
             rb.useGravity = gravity;
         }

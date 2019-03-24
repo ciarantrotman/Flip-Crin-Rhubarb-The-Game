@@ -52,7 +52,8 @@ namespace FlipCrinRob.Scripts
 		[BoxGroup("Script Setup")] public bool toolTip;
 		[BoxGroup("Script Setup")] [ShowIf("toolTip")] [Indent] public string toolTipText;
 		
-		[TabGroup("Manipulation Settings")] [HideIf("button")] [Range(0, 1f)] public float moveSpeed = 1f;
+		[TabGroup("Manipulation Settings")] [HideIf("button")] [Range(0, 1f)] public float moveForce = .15f;
+		[TabGroup("Manipulation Settings")] [HideIf("button")] [Range(0, 10f)] public float latency = 4.5f;
 		[TabGroup("Manipulation Settings")] [HideIf("button")] [SerializeField] private bool gravity;
 		[TabGroup("Manipulation Settings")] [HideIf("button")] [ShowIf("grab")] [Space(3)] public bool directGrab = true;
 		[TabGroup("Manipulation Settings")] [HideIf("button")] [ShowIf("grab")] [ShowIf("directGrab")] [SerializeField] [Indent] [Range(.1f, 5f)] private float directGrabDistance = .15f;
@@ -242,7 +243,7 @@ namespace FlipCrinRob.Scripts
 		public void GrabStart(Transform con)
 		{
 			if (!grab) return;
-			Set.RigidBody(rb, moveSpeed, false, false);
+			Set.RigidBody(rb, moveForce, latency,false, gravity);
 			f.OnStart(con);
 		}
 		public void GrabStay(Transform con, Transform mid, Transform end)
@@ -299,7 +300,7 @@ namespace FlipCrinRob.Scripts
 			if (!grab) return;
 			c.gazeList.Clear();
 			
-			Set.RigidBody(rb, moveSpeed, false, gravity);
+			Set.RigidBody(rb, moveForce, latency,false, gravity);
 			
 			f.OnEnd(con);
 		}
