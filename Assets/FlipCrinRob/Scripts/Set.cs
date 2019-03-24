@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 
 namespace FlipCrinRob.Scripts
 {
@@ -18,6 +19,14 @@ namespace FlipCrinRob.Scripts
             a.transform.rotation = b.transform.rotation;
         }
         
+        public static void AddForceRotation(Rigidbody rb, Transform a, Transform b, float force)
+        {
+            if (a == null || b == null || rb == null) return;
+            
+            var r = Quaternion.FromToRotation(a.forward, b.forward);
+            rb.AddTorque(r.eulerAngles * force, ForceMode.Force);
+        }
+        
         public static void SplitPosition(Transform xz, Transform y, Transform c)
         {
             if (xz == null || y == null || c == null) return;
@@ -25,10 +34,16 @@ namespace FlipCrinRob.Scripts
             c.transform.position = new Vector3(position.x, y.position.y, position.z);
         }
         
-        public static void LerpPosition(Transform a, Transform b, float l)
+        public static void TransformLerpPosition(Transform a, Transform b, float l)
         {
             if (a == null || b == null) return;
             a.position = Vector3.Lerp(a.position, b.position, l);
+        }
+        
+        public static void VectorLerpPosition(Transform a, Vector3 b, float l)
+        {
+            if (a == null) return;
+            a.position = Vector3.Lerp(a.position, b, l);
         }
         
         public static void Transforms(Transform a, Transform b)
@@ -44,6 +59,22 @@ namespace FlipCrinRob.Scripts
             return Vector3.Distance(a.position, b.position) *.5f;
         }
 
+        public static void MidpointPosition(Transform target, Transform a, Transform b, bool lookAt)
+        {
+            if (a == null || b == null) return;
+            var posA = a.position;
+            var posB = b.position;
+
+            target.transform.position = new Vector3(
+                (posA.x + posB.x) / 2,
+                (posA.y + posB.y) / 2,
+                (posA.z + posB.z) / 2);
+            
+            if (!lookAt) return;
+            
+            target.LookAt(b);
+        }
+
         public static void AddForcePosition(Rigidbody rb, Transform a, Transform b, bool debug)
         {
             if (a == null || b == null) return;
@@ -51,26 +82,30 @@ namespace FlipCrinRob.Scripts
             var aPos = a.position;
             var bPos = b.position;
             var x = bPos - aPos;
-            var d = Vector3.Distance(aPos, bPos) * 10f;
-            var p = Mathf.Pow(d, 2);
-            var y = 1 / d;
+            
+            var d = Vector3.Distance(aPos, bPos);
+            
+            var p = Mathf.Pow(d, 1f);
+            var y = p;
             
             if (debug)
             {
                 Debug.DrawRay(aPos, -x * y, Color.cyan);   
-                Debug.DrawRay(aPos, x * d, Color.red);
+                Debug.DrawRay(aPos, x * p, Color.yellow);
             }
             
-            rb.AddForce(x * d);
+            rb.AddForce(x, ForceMode.Force);
             
-            if (!(d < .5f)) return;
-            rb.AddForce(-x * (1 / y));
+            if (!(d < 1f)) return;
+            
+            rb.AddForce(-x * d, ForceMode.Force);
         }
 
         public static void RigidBody(Rigidbody rb, float drag, bool stop, bool gravity)
         {
-            rb.drag = drag;
-            rb.angularDrag = drag;
+            rb.mass = drag;
+            rb.drag = 1;
+            rb.angularDrag = 1;
             rb.velocity = stop? Vector3.zero : rb.velocity;
             rb.useGravity = gravity;
         }
@@ -86,6 +121,28 @@ namespace FlipCrinRob.Scripts
         {
             lr.startWidth = start;
             lr.endWidth = end;
+        }
+
+        public static Vector3 LocalScale(Vector3 originalScale, float factor)
+        {
+            return new Vector3(
+                originalScale.x + (originalScale.x * factor),
+                originalScale.y + (originalScale.y * factor),
+                originalScale.z + (originalScale.z * factor));
+        }
+
+        public static Vector3 LocalPosition(Vector3 originalPos, float factor)
+        {
+            return new Vector3(
+                originalPos.x,
+                originalPos.y,
+                originalPos.z + factor);
+        }
+
+        public static void VisualState(Transform t, SelectableObject s, Vector3 scale, Vector3 pos, TMP_FontAsset font, Color color)
+        {
+            s.buttonText.font = font;
+            s.Renderer.material.color = color;
         }
     }
 }

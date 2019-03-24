@@ -6,13 +6,13 @@ namespace FlipCrinRob.Scripts
 {
     [RequireComponent(typeof(ObjectSelection))]
     [RequireComponent(typeof(Manipulation))]
-    public class FreeRotation : MonoBehaviour
+    public class Rotation : MonoBehaviour
     {
         private ObjectSelection c;
         private Manipulation m;
         private LineRenderer lr;
         private SelectableObject selectableObject;
-        [TabGroup("References")] [SerializeField] private Transform applier;
+        [SerializeField] private GameObject rot;
         [HideInInspector] public Transform target;
         [TabGroup("Rotation Behaviours")] [SerializeField] [Range(0, 10)] private float magnification = 2f;
         [TabGroup("Rotation Behaviours")] [Space(3)] public bool enableRotationSnapping;
@@ -25,7 +25,8 @@ namespace FlipCrinRob.Scripts
         {
             c = GetComponent<ObjectSelection>();
             m = GetComponent<Manipulation>();
-            target = m.tS.transform;
+            target = m.tSr.transform;
+            rot = new GameObject("Rotation/Reference");
             lr = gameObject.AddComponent<LineRenderer>();
             Setup.LineRender(lr, c.Controller.lineRenderMat, .001f, false);
         }
@@ -52,10 +53,10 @@ namespace FlipCrinRob.Scripts
 
         private void RotationStart()
         {
-            if (c.grabObject == null || applier == null) return;
+            if (c.grabObject == null || rot == null) return;
             if (rotating) return;
             rotating = true;        
-            previousRot = applier.rotation;
+            previousRot = rot.transform.rotation;
             lr.enabled = true;
             selectableObject = c.grabObject.GetComponent<SelectableObject>();
         }
@@ -65,7 +66,7 @@ namespace FlipCrinRob.Scripts
             DrawLineRenderer(lr, c.Controller.LeftControllerTransform(), c.Controller.RightControllerTransform());
             CalculateRotation();
 
-            var rotation = applier.rotation;
+            var rotation = rot.transform.rotation;
             var deltaRotation = previousRot * Quaternion.Inverse(rotation);
             var t = Quaternion.Inverse(Quaternion.LerpUnclamped(Quaternion.identity, deltaRotation, magnification)) * this.target.rotation;
         
@@ -82,7 +83,7 @@ namespace FlipCrinRob.Scripts
                     throw new ArgumentOutOfRangeException();
             }
         
-            previousRot = applier.rotation;
+            previousRot = rot.transform.rotation;
         }
 
         private void RotationEnd()
@@ -93,18 +94,18 @@ namespace FlipCrinRob.Scripts
 
         private void CalculateRotation()
         {
-            applier.gameObject.transform.position = new Vector3(
+            rot.gameObject.transform.position = new Vector3(
                 (c.Controller.LeftControllerTransform().position.x +
                  c.Controller.RightControllerTransform().position.x) / 2,
                 (c.Controller.LeftControllerTransform().position.y +
                  c.Controller.RightControllerTransform().position.y) / 2,
                 (c.Controller.LeftControllerTransform().position.z +
                  c.Controller.RightControllerTransform().position.z) / 2);
-            applier.LookAt(c.Controller.RightControllerTransform());
+            rot.transform.LookAt(c.Controller.RightControllerTransform());
         }
 
         private void DrawLineRenderer(LineRenderer l, Transform a, Transform b)
-        {
+        {/*
             switch (c.controllerEnum)
             {     
                 case ObjectSelection.ControllerEnum.Left:
@@ -128,7 +129,7 @@ namespace FlipCrinRob.Scripts
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
+        */}
     }
 }
 

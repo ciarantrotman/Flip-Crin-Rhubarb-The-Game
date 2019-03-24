@@ -14,7 +14,6 @@
             <e p="BezierCurve.cs" t="Include" />
             <e p="ControllerTransforms.cs" t="Include" />
             <e p="FollowLerp.cs" t="Include" />
-            <e p="FreeRotation.cs" t="Include" />
             <e p="HandleController.cs" t="Include" />
             <e p="Haptics.cs" t="Include" />
             <e p="Hover.cs" t="Include" />
@@ -23,6 +22,7 @@
             <e p="Manipulation.cs" t="Include" />
             <e p="ObjectMethods.cs" t="Include" />
             <e p="ObjectSelection.cs" t="Include" />
+            <e p="Rotation.cs" t="Include" />
             <e p="RubberbandedObject.cs" t="Include" />
             <e p="SelectableObject.cs" t="Include" />
             <e p="SelfRighting.cs" t="Include" />

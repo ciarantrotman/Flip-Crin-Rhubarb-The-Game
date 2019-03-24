@@ -6,6 +6,7 @@ using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using Object = UnityEngine.Object;
 
 namespace FlipCrinRob.Scripts
 {
@@ -15,51 +16,73 @@ namespace FlipCrinRob.Scripts
 		#region Inspector and Variables
 		private ObjectSelection c;
 		private Manipulation f;
-		private FreeRotation r;
+		private Rotation r;
 		
 		private Vector3 defaultPosition;
 		private Vector3 defaultLocalPosition;
+		private Vector3 defaultLocalScale;
+
+		private bool active;
+		
 		private RotationLock rotLock;
-		private GameObject instantiatedAxes;
 		private float gazeAngle;
 		private float manualRef;
 		private Rigidbody rb;
-		private bool _throw;
 		public float AngleL { get; private set; }
 		public float AngleR { get; private set; }
-		public Renderer Renderer { get; private set; } 
+		public Renderer Renderer { get; private set; }
+
+		public enum RotationLock
+		{
+			FreeRotation
+		}
+		private enum ButtonTrigger
+		{
+			OnButtonDown,
+			OnButtonUp				
+		}
+		
 	
 		[BoxGroup("Script Setup")] [SerializeField] [Required] private GameObject player;
 		[BoxGroup("Script Setup")] [HideIf("button")] [SerializeField] private bool grab;
 		[BoxGroup("Script Setup")] [HideIf("grab")] [SerializeField] private bool button;
+		[BoxGroup("Script Setup")] [ShowIf("button")] [SerializeField] [Indent] private bool startsActive;
 		[BoxGroup("Script Setup")] [ShowIf("button")] [SerializeField] [Indent] private bool menu;
 		[BoxGroup("Script Setup")] [ShowIf("button")] [ShowIf("menu")] [Indent(2)] public GameObject menuItems;
 		[BoxGroup("Script Setup")] public bool toolTip;
 		[BoxGroup("Script Setup")] [ShowIf("toolTip")] [Indent] public string toolTipText;
 		
-		[TabGroup("Manipulation Settings")] [HideIf("button")] public float moveSpeed = 1f;
+		[TabGroup("Manipulation Settings")] [HideIf("button")] [Range(0, 1f)] public float moveSpeed = 1f;
 		[TabGroup("Manipulation Settings")] [HideIf("button")] [SerializeField] private bool gravity;
 		[TabGroup("Manipulation Settings")] [HideIf("button")] [ShowIf("grab")] [Space(3)] public bool directGrab = true;
 		[TabGroup("Manipulation Settings")] [HideIf("button")] [ShowIf("grab")] [ShowIf("directGrab")] [SerializeField] [Indent] [Range(.1f, 5f)] private float directGrabDistance = .15f;
-		public enum RotationLock
-		{
-			FreeRotation
-		}
 		[TabGroup("Rotation Settings")] [HideIf("button")] [SerializeField] public bool freeRotationEnabled;
 		[TabGroup("Rotation Settings")] [HideIf("button")] [HideIf("freeRotationEnabled")] [Indent] [SerializeField] public RotationLock rotationLock;
 		
 		[TabGroup("Button Settings")] [ShowIf("button")] public TextMeshPro buttonText;
 		[TabGroup("Button Settings")] [ShowIf("button")] public Renderer buttonBack;
+		[TabGroup("Button Settings")] [ShowIf("button")] [Space(10)] [SerializeField] private bool genericSelectState;
+		[TabGroup("Button Settings")] [ShowIf("button")] [ShowIf("genericSelectState")] [Indent] [Range(0, 1f)] [SerializeField] private float selectOffset;
+		[TabGroup("Button Settings")] [ShowIf("button")] [ShowIf("genericSelectState")] [Indent] [Range(0, 1f)] [SerializeField] private float selectScale;
+		[TabGroup("Button Settings")] [ShowIf("button")] [ShowIf("genericSelectState")] [Indent] [SerializeField] private TMP_FontAsset activeFont;
+		[TabGroup("Button Settings")] [ShowIf("button")] [ShowIf("genericSelectState")] [Indent] [SerializeField] private TMP_FontAsset inactiveFont;
+		[TabGroup("Button Settings")] [ShowIf("button")] [ShowIf("genericSelectState")] [Indent] [SerializeField] private Color activeColor = new Color(0,0,0,255);
+		[TabGroup("Button Settings")] [ShowIf("button")] [ShowIf("genericSelectState")] [Indent] [SerializeField] private Color inactiveColor = new Color(0,0,0,255);
+		[TabGroup("Button Settings")] [ShowIf("button")] [Space(5)] private ButtonTrigger buttonTrigger;
 		[TabGroup("Button Settings")] [ShowIf("button")] [SerializeField] [Space(10)] private UnityEvent selectStart;
 		[TabGroup("Button Settings")] [ShowIf("button")] [SerializeField] private UnityEvent selectStay;
 		[TabGroup("Button Settings")] [ShowIf("button")] [SerializeField] private UnityEvent selectEnd;
 
 		[BoxGroup("Visual Settings")] [SerializeField] private bool reactiveMat;
-		[BoxGroup("Visual Settings")] [ShowIf("reactiveMat")] [SerializeField] [Indent] private float clippingDistance;
-		[Header("Hover Events")]
-		[FoldoutGroup("Hover Events")] [SerializeField] private UnityEvent hoverStart;
-		[FoldoutGroup("Hover Events")] [SerializeField] private UnityEvent hoverStay;
-		[FoldoutGroup("Hover Events")] [SerializeField] private UnityEvent hoverEnd;
+		[BoxGroup("Visual Settings")] [ShowIf("reactiveMat")] [SerializeField] [Indent] [Range(0, 1f)] private float clippingDistance;
+
+		[BoxGroup("Hover Settings")] [SerializeField] private bool hover;
+		[BoxGroup("Hover Settings")] [ShowIf("hover")] [Indent] [SerializeField] private bool genericHoverEffect;
+		[BoxGroup("Hover Settings")] [ShowIf("hover")] [ShowIf("genericHoverEffect")] [Indent(2)] [Range(0, 1f)] [SerializeField] private float hoverOffset;
+		[BoxGroup("Hover Settings")] [ShowIf("hover")] [ShowIf("genericHoverEffect")] [Indent(2)] [Range(0, 1f)] [SerializeField] private float hoverScale;
+		[BoxGroup("Hover Settings")] [ShowIf("hover")] [HideIf("genericHoverEffect")] [SerializeField] private UnityEvent hoverStart;
+		[BoxGroup("Hover Settings")] [ShowIf("hover")] [HideIf("genericHoverEffect")] [SerializeField] private UnityEvent hoverStay;
+		[BoxGroup("Hover Settings")] [ShowIf("hover")] [HideIf("genericHoverEffect")] [SerializeField] private UnityEvent hoverEnd;
 		
 		private static readonly int Threshold = Shader.PropertyToID("_ClipThreshold");
 		#endregion
@@ -84,12 +107,16 @@ namespace FlipCrinRob.Scripts
 			SetupRigidBody();
 			SetupManipulation();
 			ToggleList(gameObject, c.gazeList);
+			
+			if(!button) return;
+			ToggleState(startsActive);
+			active = startsActive;
 		}
 		private void AssignComponents()
 		{
 			c = player.GetComponent<ObjectSelection>();
 			f = player.GetComponent<Manipulation>();
-			r = player.GetComponent<FreeRotation>();
+			r = player.GetComponent<Rotation>();
 			Renderer = GetComponent<Renderer>();
 		}
 		private void SetupRigidBody()
@@ -124,10 +151,9 @@ namespace FlipCrinRob.Scripts
 
 			var o = gameObject;
 			CheckGaze(o, gazeAngle, c.gaze, c.gazeList, c.lHandList, c.rHandList, c.globalList);
-			ManageList(o, c.lHandList, CheckHand(o, c.gazeList, c.manual, AngleL,f.lHandDisable, button), c.disableLeftHand, WithinRange(c.setSelectionRange, transform, c.Controller.LeftControllerTransform(), c.selectionRange));
-			ManageList(o, c.rHandList, CheckHand(o, c.gazeList, c.manual, AngleR,f.rHandDisable, button), c.disableRightHand, WithinRange(c.setSelectionRange, transform, c.Controller.RightControllerTransform(), c.selectionRange));
+			ManageList(o, c.lHandList, CheckHand(o, c.gazeList, c.manual, AngleL,f.disableRightGrab, button), c.disableLeftHand, WithinRange(c.setSelectionRange, transform, c.Controller.LeftControllerTransform(), c.selectionRange));
+			ManageList(o, c.rHandList, CheckHand(o, c.gazeList, c.manual, AngleR,f.disableLeftGrab, button), c.disableRightHand, WithinRange(c.setSelectionRange, transform, c.Controller.RightControllerTransform(), c.selectionRange));
 		}
-
 		private void ReactiveMaterial()
 		{
 			if (!reactiveMat) return;
@@ -135,7 +161,6 @@ namespace FlipCrinRob.Scripts
 			Renderer.material.SetFloat(Threshold, clippingDistance);
 			Set.ReactiveMaterial(Renderer, c.Controller.LeftControllerTransform(), c.Controller.RightControllerTransform());
 		}
-		
 		private void GetAngles()
 		{
 			var position = transform.position;
@@ -198,71 +223,159 @@ namespace FlipCrinRob.Scripts
 				c.grabObject = gameObject;
 			}
 		}
-		
-		public void GrabStart(Transform con)
+
+		private void ToggleState(bool a)
 		{
-			if (!grab) return;
-			var o = gameObject;
-			c.grabObject = o;
-			c.disableSelection = true;
-			Set.RigidBody(rb, moveSpeed, true, false);
-			f.OnStart(con);
-		}
-		public void GrabStay(Transform con, Transform mid)
-		{
-			if (!grab) return;
-			
-			f.OnStay(con, mid, transform, c.quality);
-			switch (f.manipulationType)
+			switch (a)
 			{
-				case Manipulation.ManipulationType.Lerp:
-					Set.LerpPosition(transform, f.tS.transform, .1f);
+				case true:
+					Set.VisualState(transform, this, Set.LocalScale(defaultLocalScale, selectScale), Set.LocalPosition(defaultLocalPosition, selectOffset), activeFont, activeColor);
 					break;
-				case Manipulation.ManipulationType.Physics:
-					Set.AddForcePosition(rb, transform, f.tS.transform, c.Controller.debugActive);
+				case false:
+					Set.VisualState(transform, this, defaultLocalScale, defaultLocalPosition, inactiveFont, inactiveColor);
 					break;
 				default:
 					throw new ArgumentException();
 			}
 		}
+		
+		public void GrabStart(Transform con)
+		{
+			if (!grab) return;
+			Set.RigidBody(rb, moveSpeed, false, false);
+			f.OnStart(con);
+		}
+		public void GrabStay(Transform con, Transform mid, Transform end)
+		{
+			if (!grab) return;
+			
+			f.OnStay(con, mid, end, transform, c.lineRenderQuality);
+			
+			switch (f.manipulationType)
+			{
+				case Manipulation.ManipulationType.Lerp:
+					if (DualGrab(c.Controller.LeftGrab(), c.Controller.RightGrab(), c.lSelectableObject, c.rSelectableObject, this))
+					{
+						Set.TransformLerpPosition(transform, f.mP.transform, .1f);
+						break;
+					}
+					if (c.Controller.RightGrab() && c.rSelectableObject == this)
+					{
+						Set.TransformLerpPosition(transform, f.tSr.transform, .1f);
+						break;
+					}
+					if (c.Controller.LeftGrab() && c.lSelectableObject == this)
+					{
+						Set.TransformLerpPosition(transform, f.tSl.transform, .1f);
+					}
+					break;
+				case Manipulation.ManipulationType.Physics:
+					if (DualGrab(c.Controller.LeftGrab(), c.Controller.RightGrab(), c.lSelectableObject, c.rSelectableObject, this))
+					{
+						Set.AddForcePosition(rb, transform, f.mP.transform, c.Controller.debugActive);
+						Set.AddForceRotation(rb, transform, f.mP.transform, 100f);
+						break;
+					}
+					if (c.Controller.RightGrab() && c.rSelectableObject == this)
+					{
+						Set.AddForcePosition(rb, transform, f.tSr.transform, c.Controller.debugActive);
+						break;
+					}
+					if (c.Controller.LeftGrab() && c.lSelectableObject == this)
+					{
+						Set.AddForcePosition(rb, transform, f.tSl.transform, c.Controller.debugActive);
+					}
+					break;
+				default:
+					throw new ArgumentException();
+			}
+		}
+		private static bool DualGrab(bool l, bool r, Object lS, Object rS, Object s)
+		{
+			return l && r && lS == s && rS == s;
+		}
 		public void GrabEnd(Transform con)
 		{
 			if (!grab) return;
-			c.disableSelection = false;
 			c.gazeList.Clear();
-			c.LStay = false;
-			c.RStay = false;
-			c.grabObject = null;
 			
 			Set.RigidBody(rb, moveSpeed, false, gravity);
 			
-			f.OnEnd();
+			f.OnEnd(con);
 		}
-		
 		public void HoverStart()
 		{
-			
-		}
+			hoverStart.Invoke();
 
+			if (!genericHoverEffect || !hover) return;
+			
+			var t = transform;
+			defaultLocalScale = t.localScale;
+			defaultLocalPosition = t.localPosition;
+			
+			// BUG: Replace with Tween Sequence!
+
+			t.localScale = Set.LocalScale(defaultLocalScale, hoverScale);
+			
+			if (rb.velocity != Vector3.zero) return;
+			t.localPosition = Set.LocalPosition(defaultLocalPosition, hoverOffset);
+		}
 		public void HoverStay()
 		{
-			
+			hoverStay.Invoke();
 		}
 		public void HoverEnd()
 		{
-
+			hoverEnd.Invoke();
+			
+			if (!genericHoverEffect || !hover) return;
+			
+			var t = transform;
+			
+			// BUG: Replace with Tween Sequence!
+			
+			t.localScale = defaultLocalScale;
+			
+			if (rb.velocity != Vector3.zero) return;
+			t.localPosition = defaultLocalPosition;
 		}
 		public void SelectStart()
 		{
-			
+			selectStart.Invoke();
+
+			if (!genericSelectState || !button) return;
+			switch (buttonTrigger)
+			{
+				case ButtonTrigger.OnButtonDown:
+					active = !active;
+					ToggleState(active);
+					break;
+				case ButtonTrigger.OnButtonUp:
+					break;
+				default:
+					throw new ArgumentException();
+			}
 		}
 		public void SelectStay()
 		{
-			
+			selectStay.Invoke();
 		}
 		public void SelectEnd()
 		{
+			selectEnd.Invoke();
 			
+			if (!genericSelectState || !button) return;
+			switch (buttonTrigger)
+			{
+				case ButtonTrigger.OnButtonDown:
+					break;
+				case ButtonTrigger.OnButtonUp:
+					active = !active;
+					ToggleState(active);
+					break;
+				default:
+					throw new ArgumentException();
+			}
 		}
 	}
 }

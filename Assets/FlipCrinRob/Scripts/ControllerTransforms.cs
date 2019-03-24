@@ -6,15 +6,23 @@ namespace FlipCrinRob.Scripts
 {
     public class ControllerTransforms : MonoBehaviour
     {
+        private enum SDK
+        {
+            SteamVR,
+            VRTK
+        }
+        
         [SerializeField] public bool debugActive;
         
         [TabGroup("Transforms")] [SerializeField] [Required] private Transform l;
         [TabGroup("Transforms")] [SerializeField] [Required] private Transform r;
         [TabGroup("Transforms")] [SerializeField] [Required] private Transform h;
-        
-        [TabGroup("SteamVR")] public SteamVR_Action_Boolean grabGrip;
-        [TabGroup("SteamVR")] public SteamVR_Action_Boolean triggerGrip;
-        [TabGroup("SteamVR")] public SteamVR_Action_Vibration haptic;
+
+
+        [TabGroup("Button Events")] [SerializeField] private SDK VR_SDK;
+        [TabGroup("Button Events")] public SteamVR_Action_Boolean grabGrip;
+        [TabGroup("Button Events")] public SteamVR_Action_Boolean triggerGrip;
+        [TabGroup("Button Events")] public SteamVR_Action_Vibration haptic;
        
         [TabGroup("Aesthetics")][SerializeField] public Material lineRenderMat;
         

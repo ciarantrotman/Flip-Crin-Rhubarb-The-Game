@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 using Sirenix.OdinInspector;
+using UnityEditor.U2D;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -10,45 +11,56 @@ namespace FlipCrinRob.Scripts
 	public class Manipulation : MonoBehaviour
 	{
 		#region Inspector and Variables
-		private ObjectSelection c;
-		private GameObject cP;
-		private GameObject oP;	
-		private GameObject cO;
-		private GameObject oO;
-		private GameObject fM;
 		private GameObject player;
-		private GameObject t;
-		private GameObject cF;
-		private LineRenderer lr;
+		
+		private ObjectSelection c;
+		
+		private GameObject fM;
+		[HideInInspector] public GameObject mP;
+		
+		private GameObject cPr;
+		private GameObject oPr;	
+		private GameObject cOr;
+		private GameObject oOr;
+		private GameObject tr;
+		private GameObject cFr;
+		[HideInInspector] public GameObject tSr;
+
+		private GameObject cPl;
+		private GameObject oPl;	
+		private GameObject cOl;
+		private GameObject oOl;
+		private GameObject tl;
+		private GameObject cFl;
+		[HideInInspector] public GameObject tSl;
+		
 		private float initialDistance;
 		private float m;
 		private float z;
-		private const float Buffer = .15f;
-		
-		[HideInInspector] public GameObject tS;
-		
+				
 		public enum ManipulationType
 		{
-			Lerp,
-			Physics
+			Physics,
+			Lerp		
 		}
-		[TabGroup("Indirect Manipulation")] public ManipulationType manipulationType;
-		[TabGroup("Indirect Manipulation")] [SerializeField] private bool objectMovesWithYouTeleport;
-		[TabGroup("Indirect Manipulation")] [SerializeField] public bool rHandDisable;
-		[TabGroup("Indirect Manipulation")] [SerializeField] public bool lHandDisable;
+		[TabGroup("Grab Settings")] public ManipulationType manipulationType;
+		[TabGroup("Grab Settings")] [SerializeField] private bool objectMovesWithYouTeleport;
+		[TabGroup("Grab Settings")] public bool disableLeftGrab;
+		[TabGroup("Grab Settings")] public bool disableRightGrab;
+		[TabGroup("Rotation Settings")] public bool enableRotation;
+		[TabGroup("Rotation Settings")] [ShowIf("enableRotation")] [Indent] [Range(0f, 10f)] public float force;
 		
-		[TabGroup("Snap Settings")] [SerializeField] private bool distanceSnapping;
-		[TabGroup("Snap Settings")] [ShowIf("distanceSnapping")] [Range(0f, 180f)] [Indent] [SerializeField] private float snapDistance = 1.5f;
-		[TabGroup("Snap Settings")] [SerializeField] private bool maximumDistance;
+		[BoxGroup("Snapping")] [SerializeField] private bool distanceSnapping;
+		[BoxGroup("Snapping")] [ShowIf("distanceSnapping")] [Range(0f, 180f)] [Indent] [SerializeField] private float snapDistance = 1.5f;
+		[BoxGroup("Snapping")] [SerializeField] private bool maximumDistance;
 		
 		#endregion
 		private void Start () 
 		{
 			SetupGameObjects();
+			
 			c = GetComponent<ObjectSelection>();
 			player = c.gameObject;
-			lr = cP.gameObject.AddComponent<LineRenderer>();
-			Setup.LineRender(lr, c.Controller.lineRenderMat, .005f, false);
 			
 			if (objectMovesWithYouTeleport)
 			{
@@ -58,61 +70,108 @@ namespace FlipCrinRob.Scripts
 
 		private void SetupGameObjects()
 		{
-			t = new GameObject("Manipulation/Target");
-			
 			fM = new GameObject("Manipulation/Manipulation");
+			mP = new GameObject("Manipulation/MidPoint");
 			
-			cF = new GameObject("Manipulation/Controller/Follow");
-			cF.transform.SetParent(fM.transform);
+			tr = new GameObject("Manipulation/Target/Right");
 			
-			cO = new GameObject("Manipulation/Controller/Original");
-			cO.transform.SetParent(cF.transform);
+			cFr = new GameObject("Manipulation/Controller/Follow/Right");
+			cFr.transform.SetParent(fM.transform);
 			
-			cP = new GameObject("Manipulation/Controller/Proxy");
-			cP.transform.SetParent(cF.transform);
+			cOr = new GameObject("Manipulation/Controller/Original/Right");
+			cOr.transform.SetParent(cFr.transform);
 			
-			tS = new GameObject("Manipulation/Target/Scaled");
-			tS.transform.SetParent(cP.transform);
+			cPr = new GameObject("Manipulation/Controller/Proxy/Right");
+			cPr.transform.SetParent(cFr.transform);
 			
-			oP = new GameObject("Manipulation/Object/Proxy");
-			oP.transform.SetParent(cP.transform);
+			tSr = new GameObject("Manipulation/Target/Scaled/Right");
+			tSr.transform.SetParent(cPr.transform);
 			
-			oO = new GameObject("Manipulation/Object/Original");
-			oO.transform.SetParent(cP.transform);
+			oPr = new GameObject("Manipulation/Object/Proxy/Right");
+			oPr.transform.SetParent(cPr.transform);
+			
+			oOr = new GameObject("Manipulation/Object/Original/Right");
+			oOr.transform.SetParent(cPr.transform);
+			
+			tl = new GameObject("Manipulation/Target/Left");
+			
+			cFl = new GameObject("Manipulation/Controller/Follow/Left");
+			cFl.transform.SetParent(fM.transform);
+			
+			cOl = new GameObject("Manipulation/Controller/Original/Left");
+			cOl.transform.SetParent(cFl.transform);
+			
+			cPl = new GameObject("Manipulation/Controller/Proxy/Left");
+			cPl.transform.SetParent(cFl.transform);
+			
+			tSl = new GameObject("Manipulation/Target/Scaled/Left");
+			tSl.transform.SetParent(cPl.transform);
+			
+			oPl = new GameObject("Manipulation/Object/Proxy/Left");
+			oPl.transform.SetParent(cPl.transform);
+			
+			oOl = new GameObject("Manipulation/Object/Original/Left");
+			oOl.transform.SetParent(cPl.transform);
 		}
 		private void Update()
-		{	
-			DrawDebugLines();
+		{				
+			Set.SplitPosition(c.Controller.CameraTransform(), c.Controller.LeftControllerTransform(), cFl.transform);
+			Set.SplitPosition(c.Controller.CameraTransform(), c.Controller.RightControllerTransform(), cFr.transform);
+			Set.MidpointPosition(mP.transform, tSl.transform, tSr.transform, true);
 			
-			Set.SplitPosition(c.Controller.CameraTransform(), c.Controller.LeftControllerTransform(), cF.transform);
+			FollowFocusObjects();
+		}
 
-			if(c.disableSelection) return;
-			
+		private void FollowFocusObjects()
+		{
 			if (c.lFocusObject != null)
 			{
-				FocusObjectFollow(c.lFocusObject, c.LStay, c.RStay, c.lFocusObject.transform, c.Controller.LeftControllerTransform().position);
+				ObjectMethods.FocusObjectFollow(c.lFocusObject.transform, c.Controller.LeftControllerTransform(), tl.transform, tSl.transform, oOl.transform, cOl.transform, oPl.transform, c.Controller.LeftGrab());
 			}
 
 			if (c.rFocusObject != null)
 			{
-				FocusObjectFollow(c.rFocusObject, c.LStay, c.RStay, c.rFocusObject.transform, c.Controller.RightControllerTransform().position);
+				ObjectMethods.FocusObjectFollow(c.rFocusObject.transform, c.Controller.RightControllerTransform(), tr.transform, tSr.transform, oOr.transform, cOr.transform, oPr.transform, c.Controller.RightGrab());
 			}
 		}
 		public void OnStart(Transform con)
-		{			
-			ObjectMethods.GrabStart(cF, cP, t, cO, con);
-			Set.Transforms(t.transform, c.grabObject.transform);
-			Set.Transforms(tS.transform, t.transform);
-			Set.Position(oP.transform, c.grabObject.transform);
-			Set.Position(oO.transform, c.grabObject.transform);
-			lr.enabled = true;
+		{
+			switch (con == c.Controller.LeftControllerTransform())
+			{
+				case true:
+					ObjectMethods.GrabStart(cFl, cPl, tl, cOl, con);
+					Set.Transforms(tl.transform, c.lFocusObject.transform);
+					Set.Transforms(tSl.transform, tl.transform);
+					Set.Position(oPl.transform, c.lFocusObject.transform);
+					Set.Position(oOl.transform, c.lFocusObject.transform);
+					break;
+				case false:
+					ObjectMethods.GrabStart(cFr, cPr, tr, cOr, con);
+					Set.Transforms(tr.transform, c.rFocusObject.transform);
+					Set.Transforms(tSr.transform, tr.transform);
+					Set.Position(oPr.transform, c.rFocusObject.transform);
+					Set.Position(oOr.transform, c.rFocusObject.transform);
+					break;
+				default:
+					throw new ArgumentException();
+			}
 		}
 
-		public void OnStay(Transform con, Transform mid, Transform grabObject, int q)
+		public void OnStay(Transform con, Transform mid, Transform end, Transform grabObject, int q)
 		{
-			ControllerFollowing(con);
-			ObjectMethods.GrabLineRenderer(lr, con, mid, grabObject, q);
-			tS.transform.localPosition = new Vector3(0, 0, MagnifiedDepth(cP, cO, oO, tS, snapDistance, c.selectionRange - Buffer, maximumDistance));
+			switch (con == c.Controller.LeftControllerTransform())
+			{
+				case true:
+					ControllerFollowing(con, cFl, cPl, tl);
+					tSl.transform.localPosition = new Vector3(0, 0, MagnifiedDepth(cPl, cOl, oOl, tSl, snapDistance, c.selectionRange - c.selectionRange * .75f, maximumDistance));
+					break;
+				case false:
+					ControllerFollowing(con, cFr, cPr, tr);
+					tSr.transform.localPosition = new Vector3(0, 0, MagnifiedDepth(cPr, cOr, oOr, tSr, snapDistance, c.selectionRange - c.selectionRange * .75f, maximumDistance));
+					break;
+				default:
+					throw new ArgumentException();
+			}
 		}
 
 		private static float MagnifiedDepth(GameObject conP, GameObject conO, GameObject objO, GameObject objP, float snapDistance, float max, bool limit)
@@ -125,54 +184,26 @@ namespace FlipCrinRob.Scripts
 			return objO.transform.localPosition.z * Mathf.Pow(depth, 2.5f);
 		}
 		
-		public void OnEnd()
+		public void OnEnd(Transform con)
 		{
-			lr.enabled = false;
-			t.transform.SetParent(null);
+			switch (con == c.Controller.LeftControllerTransform())
+			{
+				case true:
+					tl.transform.SetParent(null);
+					break;
+				case false:
+					tr.transform.SetParent(null);
+					break;
+				default:
+					throw new ArgumentException();
+			}
 		}
-
-		private void FocusObjectFollow(Object s, bool l, bool r, Transform f, Vector3 p)
+		
+		private void ControllerFollowing(Transform con, GameObject f, GameObject p, GameObject target)
 		{
-			if (s == null || l || r) return;
-			
-			var pos = f.position;
-			var rot = f.rotation;
-				
-			t.transform.position = pos;
-			t.transform.rotation = rot;
-				
-			tS.transform.position = t.transform.position;
-			tS.transform.rotation = t.transform.rotation;
-				
-			oO.transform.position = pos;
-			oO.transform.rotation = rot;
-				
-			cO.transform.position = p;
-				
-			oP.transform.position = pos;
-		}
-		private void ControllerFollowing(Transform con)
-		{
-			cF.transform.LookAt(con);
-			cP.transform.position = con.position;
-			cP.transform.LookAt(t.transform);
-		}
-
-		private void DrawDebugLines()
-		{
-			if (c.Controller.debugActive == false) return;
-			var position = oP.transform.position;
-			var position1 = oO.transform.position;
-			var position2 = cO.transform.position;
-			var position3 = cP.transform.position;
-			Debug.DrawLine(position3, position2, Color.red);
-			Debug.DrawLine(position, position1, Color.red);
-			Debug.DrawLine(position, position3, Color.blue);
-			Debug.DrawLine(position1, position2, Color.blue);
-			var position4 = tS.transform.position;
-			Debug.DrawLine(position, position4, Color.green);
-			Debug.DrawLine(position3, position4, Color.green);
-			Debug.DrawLine(t.transform.position, position4, Color.yellow);
+			f.transform.LookAt(con);
+			p.transform.position = con.position;
+			p.transform.LookAt(target.transform);
 		}
 	}
 }
