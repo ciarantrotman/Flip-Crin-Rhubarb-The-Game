@@ -22,12 +22,37 @@ namespace FlipCrinRob.Scripts
             }
         }
         
-        public static void Selection(Object focusObject, SelectableObject button, bool c, bool p)
+        public static void Selection(Object focusObject, SelectableObject button, bool select, bool pSelect)
         {
             if (focusObject == null || button == null) return;
-            if (c != p && c)
+            if (select && !pSelect)
             {
-                button.OnSelect();
+                button.SelectStart();
+            }
+            if (select && pSelect)
+            {
+                button.SelectStay();
+            }
+            if (!select && pSelect)
+            {
+                button.SelectEnd();
+            }
+        }
+
+        public static void Hover(Object focusObject, SelectableObject button, bool hover, bool pHover)
+        {
+            if (focusObject == null || button == null) return;
+            if (hover && !pHover)
+            {
+                button.HoverStart();
+            }
+            if (hover && pHover)
+            {
+                button.HoverStay();
+            }
+            if (!hover && pHover)
+            {
+                button.HoverEnd();
             }
         }
         
@@ -42,30 +67,26 @@ namespace FlipCrinRob.Scripts
             return focusObject.GetComponent<SelectableObject>() != null ? focusObject.GetComponent<SelectableObject>() : null;
         }
         
-        public static void DrawLineRenderer(LineRenderer lr, GameObject f, GameObject m, Transform c, GameObject t, int q, bool d)
+        public static void DrawLineRenderer(LineRenderer lr, GameObject focus, GameObject midpoint, GameObject inactive, Transform controller, GameObject target, int quality, bool disabled)
         {
-            Set.LerpPosition(t.transform, f != null ? f.transform : c, .25f);
-			
-            if (f != null && !d)
-            {
-                lr.enabled = true;
-                m.transform.localPosition = new Vector3(0, 0, Set.Midpoint(c, t.transform));
-                BezierCurve.BezierLineRenderer(lr, 
-                    c.position,
-                    m.transform.position, 
-                    t.transform.position,
-                    q);
-            }
-            else if (f == null || d)
-            {
-                lr.enabled = false;
-            }
+            Set.LerpPosition(target.transform, focus != null ? focus.transform : inactive.transform, disabled ? .1f : .3f);
+            midpoint.transform.localPosition = new Vector3(0, 0, Set.Midpoint(controller, target.transform));
+            Set.LineRenderWidth(lr, .001f, focus != null ? .01f : .001f);
+            
+            BezierCurve.BezierLineRenderer(lr, 
+                controller.position,
+                midpoint.transform.position, 
+                target.transform.position,
+                quality);
+
+            lr.enabled = !disabled;
         }
         
-        public static void GrabLineRenderer(LineRenderer lR, Transform con, Transform mid, Transform target, int q)
+        public static void GrabLineRenderer(LineRenderer lr, Transform con, Transform mid, Transform target, int q)
         {
             mid.transform.localPosition = new Vector3(0, 0,Set.Midpoint(con, target));
-            BezierCurve.BezierLineRenderer(lR, 
+            Set.LineRenderWidth(lr, .001f, .01f);
+            BezierCurve.BezierLineRenderer(lr, 
                 con.position,
                 mid.position, 
                 target.position,

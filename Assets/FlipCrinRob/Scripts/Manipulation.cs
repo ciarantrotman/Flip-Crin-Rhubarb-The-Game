@@ -23,6 +23,7 @@ namespace FlipCrinRob.Scripts
 		private float initialDistance;
 		private float m;
 		private float z;
+		private const float Buffer = .15f;
 		
 		[HideInInspector] public GameObject tS;
 		
@@ -37,7 +38,7 @@ namespace FlipCrinRob.Scripts
 		[TabGroup("Indirect Manipulation")] [SerializeField] public bool lHandDisable;
 		
 		[TabGroup("Snap Settings")] [SerializeField] private bool distanceSnapping;
-		[TabGroup("Snap Settings")] [ShowIf("distanceSnapping")] [Range(0f, 180f)] [Indent] [SerializeField] private float snapDistance = .15f;
+		[TabGroup("Snap Settings")] [ShowIf("distanceSnapping")] [Range(0f, 180f)] [Indent] [SerializeField] private float snapDistance = 1.5f;
 		[TabGroup("Snap Settings")] [SerializeField] private bool maximumDistance;
 		
 		#endregion
@@ -111,24 +112,17 @@ namespace FlipCrinRob.Scripts
 		{
 			ControllerFollowing(con);
 			ObjectMethods.GrabLineRenderer(lr, con, mid, grabObject, q);
-			tS.transform.localPosition = new Vector3(0, 0, MagnifiedDepth(cP, cO, oO, 1f, c.selectionRange));
+			tS.transform.localPosition = new Vector3(0, 0, MagnifiedDepth(cP, cO, oO, tS, snapDistance, c.selectionRange - Buffer, maximumDistance));
 		}
 
-		private static float MagnifiedDepth(GameObject conP, GameObject conO, GameObject objO, float snapDistance, float max)
+		private static float MagnifiedDepth(GameObject conP, GameObject conO, GameObject objO, GameObject objP, float snapDistance, float max, bool limit)
 		{
 			var depth = conP.transform.localPosition.z / conO.transform.localPosition.z;
-
-			if (depth < snapDistance)
-			{
-				return objO.transform.localPosition.z * Mathf.Pow(depth, 2);														
-			}
-			
-			if (depth >= max)
-			{
-				//return max;
-			}
-
-			return objO.transform.localPosition.z * Mathf.Pow(depth, 3);
+			var distance = Vector3.Distance(objO.transform.position, objP.transform.position);
+				
+			if (distance >= max && limit) return max;
+			if (distance < snapDistance) return objO.transform.localPosition.z * Mathf.Pow(depth, 2);														
+			return objO.transform.localPosition.z * Mathf.Pow(depth, 2.5f);
 		}
 		
 		public void OnEnd()

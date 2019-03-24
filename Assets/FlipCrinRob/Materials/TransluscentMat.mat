@@ -8,16 +8,16 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: TransluscentMat
-  m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
+  m_Shader: {fileID: 4800000, guid: dc679222cb4eb0d4586123aa1b8688a0, type: 3}
   m_ShaderKeywords: _ALPHATEST_ON _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     _ENABLE_FOG_ON_TRANSPARENT _MATERIAL_FEATURE_IRIDESCENCE _NORMALMAP_TANGENT_SPACE
     _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: -1
   stringTagMap:
-    RenderType: Transparent
+    MotionVector: User
   disabledShaderPasses:
   - MOTIONVECTORS
   m_SavedProperties:
@@ -119,6 +119,9 @@ Material:
     - _AlphaCutoffShadow: 0.5
     - _Anisotropy: 0
     - _BlendMode: 0
+    - _BlurMin: 0.6
+    - _BlurStrength: 0.5
+    - _ClipThreshold: 0.25
     - _CoatMask: 0
     - _CullMode: 2
     - _CullModeForward: 2
@@ -174,6 +177,7 @@ Material:
     - _IridescenceThickness: 0.967
     - _LinkDetailsWithBase: 1
     - _MaterialID: 3
+    - _Max: 1
     - _Metallic: 0
     - _NormalMapSpace: 0
     - _NormalScale: 0
@@ -219,15 +223,18 @@ Material:
     - _ZTestGBuffer: 3
     - _ZTestModeDistortion: 4
     - _ZWrite: 0
+    - _smooth: 0.5
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 0.50980395}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 1, g: 1, b: 1, a: 0.50980395}
+    - _Color: {r: 0.98039216, g: 0.98039216, b: 0.98039216, a: 0.09803922}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
+    - _LeftHand: {r: -3.69, g: 0, b: -0.1, a: 0}
+    - _RightHand: {r: 0, g: 0, b: -0.1, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 0}

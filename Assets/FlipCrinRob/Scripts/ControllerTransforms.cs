@@ -8,13 +8,13 @@ namespace FlipCrinRob.Scripts
     {
         [SerializeField] public bool debugActive;
         
-        [TabGroup("Transforms")][SerializeField] private Transform l;
-        [TabGroup("Transforms")][SerializeField] private Transform r;
-        [TabGroup("Transforms")][SerializeField] private Transform h;
+        [TabGroup("Transforms")] [SerializeField] [Required] private Transform l;
+        [TabGroup("Transforms")] [SerializeField] [Required] private Transform r;
+        [TabGroup("Transforms")] [SerializeField] [Required] private Transform h;
         
-        [TabGroup("SteamVR")]public SteamVR_Action_Boolean grabGrip;
-        [TabGroup("SteamVR")]public SteamVR_Action_Boolean triggerGrip;
-        [TabGroup("SteamVR")]public SteamVR_Action_Vibration haptic;
+        [TabGroup("SteamVR")] public SteamVR_Action_Boolean grabGrip;
+        [TabGroup("SteamVR")] public SteamVR_Action_Boolean triggerGrip;
+        [TabGroup("SteamVR")] public SteamVR_Action_Vibration haptic;
        
         [TabGroup("Aesthetics")][SerializeField] public Material lineRenderMat;
         

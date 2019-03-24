@@ -12,5 +12,14 @@ namespace FlipCrinRob.Scripts
             lr.useWorldSpace = true;
             lr.enabled = e;
         }
+        
+        public static void LineRenderObjects(Transform m, Transform p, float offset)
+        {
+            m.position = p.position;
+            m.parent = p;
+            m.localRotation = new Quaternion(0,0,0,0);
+            var position = m.position;
+            m.localPosition = new Vector3(position.x, position.y, position.z + offset);
+        }
     }
 }

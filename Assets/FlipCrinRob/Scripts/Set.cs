@@ -4,6 +4,9 @@ namespace FlipCrinRob.Scripts
 {
     public static class Set
     {
+        private static readonly int LeftHand = Shader.PropertyToID("_LeftHand");
+        private static readonly int RightHand = Shader.PropertyToID("_RightHand");
+
         public static void Position(Transform a, Transform b)
         {
             if (a == null || b == null) return;
@@ -38,7 +41,7 @@ namespace FlipCrinRob.Scripts
         public static float Midpoint(Transform a, Transform b)
         {
             if (a == null || b == null) return 0f;
-            return Vector3.Distance(a.position, b.position) / 2;
+            return Vector3.Distance(a.position, b.position) *.5f;
         }
 
         public static void AddForcePosition(Rigidbody rb, Transform a, Transform b, bool debug)
@@ -70,6 +73,19 @@ namespace FlipCrinRob.Scripts
             rb.angularDrag = drag;
             rb.velocity = stop? Vector3.zero : rb.velocity;
             rb.useGravity = gravity;
+        }
+
+        public static void ReactiveMaterial(Renderer r,  Transform leftHand, Transform rightHand)
+        {
+            var material = r.material;
+            material.SetVector(LeftHand, leftHand.position);
+            material.SetVector(RightHand, rightHand.position);
+        }
+
+        public static void LineRenderWidth(LineRenderer lr, float start, float end)
+        {
+            lr.startWidth = start;
+            lr.endWidth = end;
         }
     }
 }

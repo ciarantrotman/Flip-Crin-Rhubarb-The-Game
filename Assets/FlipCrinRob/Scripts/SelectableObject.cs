@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -26,17 +27,18 @@ namespace FlipCrinRob.Scripts
 		private bool _throw;
 		public float AngleL { get; private set; }
 		public float AngleR { get; private set; }
+		public Renderer Renderer { get; private set; } 
+	
+		[BoxGroup("Script Setup")] [SerializeField] [Required] private GameObject player;
+		[BoxGroup("Script Setup")] [HideIf("button")] [SerializeField] private bool grab;
+		[BoxGroup("Script Setup")] [HideIf("grab")] [SerializeField] private bool button;
+		[BoxGroup("Script Setup")] [ShowIf("button")] [SerializeField] [Indent] private bool menu;
+		[BoxGroup("Script Setup")] [ShowIf("button")] [ShowIf("menu")] [Indent(2)] public GameObject menuItems;
+		[BoxGroup("Script Setup")] public bool toolTip;
+		[BoxGroup("Script Setup")] [ShowIf("toolTip")] [Indent] public string toolTipText;
 		
-		[TabGroup("Script Setup")] [SerializeField] private GameObject player;
-		[TabGroup("Script Setup")] [HideIf("button")] [SerializeField] private bool grab;
-		[TabGroup("Script Setup")] [HideIf("grab")] [SerializeField] private bool button;
-		[TabGroup("Script Setup")] [ShowIf("button")] [SerializeField] [Indent] private bool menu;
-		[TabGroup("Script Setup")] [ShowIf("button")] [ShowIf("menu")] [Indent(2)] public GameObject menuItems;
-		[TabGroup("Script Setup")] public bool toolTip;
-		[TabGroup("Script Setup")] [ShowIf("toolTip")] [Indent] public string toolTipText;
-		
-		[TabGroup("Object Behaviour")] [HideIf("button")] public float moveSpeed = 1f;
-		[TabGroup("Object Behaviour")] [HideIf("button")] private bool gravity;
+		[TabGroup("Manipulation Settings")] [HideIf("button")] public float moveSpeed = 1f;
+		[TabGroup("Manipulation Settings")] [HideIf("button")] [SerializeField] private bool gravity;
 		[TabGroup("Manipulation Settings")] [HideIf("button")] [ShowIf("grab")] [Space(3)] public bool directGrab = true;
 		[TabGroup("Manipulation Settings")] [HideIf("button")] [ShowIf("grab")] [ShowIf("directGrab")] [SerializeField] [Indent] [Range(.1f, 5f)] private float directGrabDistance = .15f;
 		public enum RotationLock
@@ -48,9 +50,18 @@ namespace FlipCrinRob.Scripts
 		
 		[TabGroup("Button Settings")] [ShowIf("button")] public TextMeshPro buttonText;
 		[TabGroup("Button Settings")] [ShowIf("button")] public Renderer buttonBack;
-		[TabGroup("Button Settings")] [ShowIf("button")] [Space(10)] [SerializeField] private UnityEvent @select;
-		[TabGroup("Button Settings")] [ShowIf("button")] [SerializeField] private UnityEvent hover;
-		[TabGroup("Button Settings")] [ShowIf("button")] [SerializeField] private UnityEvent hoverEnd;
+		[TabGroup("Button Settings")] [ShowIf("button")] [SerializeField] [Space(10)] private UnityEvent selectStart;
+		[TabGroup("Button Settings")] [ShowIf("button")] [SerializeField] private UnityEvent selectStay;
+		[TabGroup("Button Settings")] [ShowIf("button")] [SerializeField] private UnityEvent selectEnd;
+
+		[BoxGroup("Visual Settings")] [SerializeField] private bool reactiveMat;
+		[BoxGroup("Visual Settings")] [ShowIf("reactiveMat")] [SerializeField] [Indent] private float clippingDistance;
+		[Header("Hover Events")]
+		[FoldoutGroup("Hover Events")] [SerializeField] private UnityEvent hoverStart;
+		[FoldoutGroup("Hover Events")] [SerializeField] private UnityEvent hoverStay;
+		[FoldoutGroup("Hover Events")] [SerializeField] private UnityEvent hoverEnd;
+		
+		private static readonly int Threshold = Shader.PropertyToID("_ClipThreshold");
 		#endregion
 		private void Start ()
 		{
@@ -69,25 +80,17 @@ namespace FlipCrinRob.Scripts
 		}
 		private void InitialiseSelectableObject()
 		{
-			//CheckPlayer();
 			AssignComponents();
 			SetupRigidBody();
 			SetupManipulation();
 			ToggleList(gameObject, c.gazeList);
-		}
-		private void CheckPlayer()
-		{
-			if (player != null && player.GetComponent<ObjectSelection>() != null &&
-			    player.GetComponent<Manipulation>() != null) return;
-			Debug.Log("Make sure the right scripts are attached to the VR Player");
-			GetComponent<SelectableObject>().enabled = false;
-			Destroy(this);
 		}
 		private void AssignComponents()
 		{
 			c = player.GetComponent<ObjectSelection>();
 			f = player.GetComponent<Manipulation>();
 			r = player.GetComponent<FreeRotation>();
+			Renderer = GetComponent<Renderer>();
 		}
 		private void SetupRigidBody()
 		{
@@ -114,18 +117,25 @@ namespace FlipCrinRob.Scripts
 			}
 		}
 		private void Update()
-		{
-			SelectionRange();
+		{		
 			GetAngles();
 			CheckDirectGrab();
+			ReactiveMaterial();
 
 			var o = gameObject;
-			CheckGaze(o, gazeAngle, c.gaze, c.gazeList, c.lHandList, c.rHandList);
-			ManageList(o, c.lHandList, CheckHand(o, c.gazeList, c.lHandList, c.manual, AngleL,f.lHandDisable, button), c.disableLeftHand);
-			ManageList(o, c.rHandList, CheckHand(o, c.gazeList, c.rHandList, c.manual, AngleR,f.rHandDisable, button), c.disableRightHand);
-			
-			OnHoverEnd();
+			CheckGaze(o, gazeAngle, c.gaze, c.gazeList, c.lHandList, c.rHandList, c.globalList);
+			ManageList(o, c.lHandList, CheckHand(o, c.gazeList, c.manual, AngleL,f.lHandDisable, button), c.disableLeftHand, WithinRange(c.setSelectionRange, transform, c.Controller.LeftControllerTransform(), c.selectionRange));
+			ManageList(o, c.rHandList, CheckHand(o, c.gazeList, c.manual, AngleR,f.rHandDisable, button), c.disableRightHand, WithinRange(c.setSelectionRange, transform, c.Controller.RightControllerTransform(), c.selectionRange));
 		}
+
+		private void ReactiveMaterial()
+		{
+			if (!reactiveMat) return;
+			
+			Renderer.material.SetFloat(Threshold, clippingDistance);
+			Set.ReactiveMaterial(Renderer, c.Controller.LeftControllerTransform(), c.Controller.RightControllerTransform());
+		}
+		
 		private void GetAngles()
 		{
 			var position = transform.position;
@@ -133,12 +143,20 @@ namespace FlipCrinRob.Scripts
 			AngleL = Vector3.Angle(position - c.Controller.LeftControllerTransform().position, c.Controller.LeftForwardVector());
 			AngleR = Vector3.Angle(position - c.Controller.RightControllerTransform().position, c.Controller.RightForwardVector());
 		}
-		private static void CheckGaze(GameObject o, float a, float c, List<GameObject> g, List<GameObject> l, List<GameObject> r)
+		private static void CheckGaze(GameObject o, float a, float c, List<GameObject> g, List<GameObject> l, List<GameObject> r, List<GameObject> global)
 		{
-			if (a < c/2 && g.Contains(o) == false)
+			if (!global.Contains(o))
+			{
+				g.Remove(o);
+				l.Remove(o);
+				r.Remove(o);
+			}
+				
+			if (a < c/2 && !g.Contains(o))
 			{
 				g.Add(o);
 			}
+			
 			else if (a > c/2)
 			{
 				g.Remove(o);
@@ -146,17 +164,22 @@ namespace FlipCrinRob.Scripts
 				r.Remove(o);
 			}
 		}
-		
-		private static bool CheckHand(GameObject g, List<GameObject> gaze, List<GameObject> l, float m, float c, bool b, bool button)
+		private static bool CheckHand(GameObject g, List<GameObject> gaze, float m, float c, bool b, bool button)
 		{
 			if (b && !button) return false;
 			if (!gaze.Contains(g)) return false;
 			return m > c / 2;
 		}
 
-		private static void ManageList(GameObject g, List<GameObject> l, bool b, bool d)
+		private static bool WithinRange(bool enabled, Transform self, Transform user, float range)
 		{
-			if (d) return;
+			if (!enabled) return true;
+			return Vector3.Distance(self.position, user.position) <= range;
+		}
+
+		private static void ManageList(GameObject g, List<GameObject> l, bool b, bool d, bool r)
+		{
+			if (d || !r) return;
 			
 			if (b && !l.Contains(g))
 			{
@@ -168,44 +191,6 @@ namespace FlipCrinRob.Scripts
 			}
 		}
 		
-		public void OnHover()
-		{
-			hover.Invoke();
-		}
-		private void OnHoverEnd()
-		{
-			if(c.rFocusObject == gameObject || c.lFocusObject == gameObject) return;
-			hoverEnd.Invoke();
-		}
-		public void OnSelect()
-		{
-			select.Invoke();
-		}
-		private void SelectionRange()
-		{
-			if (!c.setSelectionRange) return;
-		
-			if (Vector3.Distance(transform.position, player.transform.position) >= c.selectionRange)
-			{
-				if (!c.globalList.Contains(gameObject)) return;
-				
-				c.globalList.Remove(gameObject);
-				c.rHandList.Remove(gameObject);
-				c.lHandList.Remove(gameObject);
-				c.gazeList.Remove(gameObject);
-				c.lFocusObject = null;
-				c.rFocusObject = null;
-				c.lSelectableObject = null;
-				c.rSelectableObject = null;
-			}
-			else if (Vector3.Distance(transform.position, player.transform.position) < c.selectionRange)
-			{
-				if (!c.globalList.Contains(gameObject))
-				{
-					c.globalList.Add(gameObject);
-				}
-			}
-		}
 		private void CheckDirectGrab()
 		{
 			if (Vector3.Distance(transform.position, c.Controller.LeftControllerTransform().position) <= directGrabDistance)
@@ -248,9 +233,36 @@ namespace FlipCrinRob.Scripts
 			c.LStay = false;
 			c.RStay = false;
 			c.grabObject = null;
+			
 			Set.RigidBody(rb, moveSpeed, false, gravity);
 			
 			f.OnEnd();
+		}
+		
+		public void HoverStart()
+		{
+			
+		}
+
+		public void HoverStay()
+		{
+			
+		}
+		public void HoverEnd()
+		{
+
+		}
+		public void SelectStart()
+		{
+			
+		}
+		public void SelectStay()
+		{
+			
+		}
+		public void SelectEnd()
+		{
+			
 		}
 	}
 }

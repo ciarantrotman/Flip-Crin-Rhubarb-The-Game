@@ -26,6 +26,9 @@ namespace FlipCrinRob.Scripts
 		private bool rSelectPrevious;
 		private bool lGrabPrevious;
 		private bool rGrabPrevious;
+		private GameObject lDefault;
+		private GameObject rDefault;
+		
 		[HideInInspector] public ControllerEnum controllerEnum;
 		[HideInInspector] public GameObject grabObject;
 		[HideInInspector] public GameObject lMidPoint;
@@ -38,19 +41,20 @@ namespace FlipCrinRob.Scripts
 		[HideInInspector] public LineRenderer rLr;
 		[HideInInspector] public bool disableSelection;
 		
-		[TabGroup("Selection Settings")] [Range(0f, 180f)] public float gaze = 60f;
-		[TabGroup("Selection Settings")] [Range(0f, 180f)] public float manual = 25f;
-		[TabGroup("Selection Settings")] public bool setSelectionRange;		
-		[TabGroup("Selection Settings")] [ShowIf("setSelectionRange")] [Indent] [Range(0f, 250f)] public float selectionRange = 25f;		
-		[TabGroup("Selection Settings")] public bool disableLeftHand;
-		[TabGroup("Selection Settings")] public bool disableRightHand;
+		[BoxGroup("Selection Settings")] [Range(0f, 180f)] public float gaze = 60f;
+		[BoxGroup("Selection Settings")] [Range(0f, 180f)] public float manual = 25f;
+		[BoxGroup("Selection Settings")] public bool setSelectionRange;		
+		[BoxGroup("Selection Settings")] [ShowIf("setSelectionRange")] [Indent] [Range(0f, 250f)] public float selectionRange = 25f;		
+		[BoxGroup("Selection Settings")] public bool disableLeftHand;
+		[BoxGroup("Selection Settings")] public bool disableRightHand;
 		
 		[TabGroup("Object Lists")] public List<GameObject> globalList;
 		[TabGroup("Object Lists")] public List<GameObject> gazeList;
 		[TabGroup("Object Lists")] public List<GameObject> rHandList;
 		[TabGroup("Object Lists")] public List<GameObject> lHandList;
 
-		[TabGroup("Aesthetics and References")] [Space(5)] [Indent] [SerializeField] [Range(0f, 30f)] public int quality = 15;
+		[TabGroup("Aesthetics")] [Range(0f, 30f)] public int quality = 15;
+		[TabGroup("Aesthetics")] [Range(0f, 2.5f)] public float offset = 1f;
 		#endregion
 		private void Start ()
 		{
@@ -70,16 +74,16 @@ namespace FlipCrinRob.Scripts
 			rMidPoint = new GameObject("MidPoint/Right");
 			lTarget = new GameObject("TargetLineRender/Left");
 			rTarget = new GameObject("Target/LineRender/Right");
+			lDefault = new GameObject("Target/LineRender/Left/Default");
+			rDefault = new GameObject("Target/LineRender/Right/Default");
+						
+			Setup.LineRenderObjects(lDefault.transform, Controller.LeftControllerTransform(), offset);
+			Setup.LineRenderObjects(rDefault.transform, Controller.RightControllerTransform(), offset);
 			
-			SetupMidpoints(lMidPoint.transform, Controller.LeftControllerTransform());
-			SetupMidpoints(rMidPoint.transform, Controller.RightControllerTransform());
+			Setup.LineRenderObjects(lMidPoint.transform, Controller.LeftControllerTransform(), 0f);
+			Setup.LineRenderObjects(rMidPoint.transform, Controller.RightControllerTransform(), 0f);
 		}
-		private static void SetupMidpoints(Transform m, Transform p)
-		{
-			m.position = p.position;
-			m.parent = p;
-			m.localRotation = new Quaternion(0,0,0,0);
-		}
+		
 		private void Update () 
 		{		
 			SortLists();
@@ -92,8 +96,8 @@ namespace FlipCrinRob.Scripts
 				rSelectableObject = ObjectMethods.FindSelectableObject(rFocusObject);
 			}
 
-			ObjectMethods.DrawLineRenderer(lLr, lFocusObject, lMidPoint, Controller.LeftControllerTransform(),lTarget, quality, disableSelection);
-			ObjectMethods.DrawLineRenderer(rLr, rFocusObject, rMidPoint, Controller.RightControllerTransform(),rTarget, quality, disableSelection);
+			ObjectMethods.DrawLineRenderer(lLr, lFocusObject, lMidPoint, lDefault, Controller.LeftControllerTransform(), lTarget, quality, disableSelection);
+			ObjectMethods.DrawLineRenderer(rLr, rFocusObject, rMidPoint, rDefault, Controller.RightControllerTransform() ,rTarget, quality, disableSelection);
 
 			DrawDebugLines(Controller.debugActive);
 		}
