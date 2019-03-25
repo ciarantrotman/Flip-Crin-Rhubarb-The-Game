@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: af82c2c0e403f224c82b1f918d913030
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - player: {instanceID: 0}
+  - menuItems: {instanceID: 0}
+  - buttonText: {instanceID: 0}
+  - buttonBack: {instanceID: 0}
+  - activeFont: {fileID: 11400000, guid: bdc94967957061343a5a70d80f5a33d2, type: 2}
+  - inactiveFont: {fileID: 11400000, guid: 8e1ee391c916c1945abce44e1987c5ac, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

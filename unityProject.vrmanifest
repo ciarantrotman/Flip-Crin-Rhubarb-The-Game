@@ -5,7 +5,7 @@
       "app_key": "application.generated.unity.hdrpsketch.exe",
       "launch_type": "url",
       "url": "steam://launch/",
-      "action_manifest_path": "C:\\Projects Repos\\VR_OS_Prototyping\\actions.json",
+      "action_manifest_path": "S:\\Personal\\Projects\\Unity Development\\HDRP Sketches\\HDRP Sketch\\actions.json",
       "strings": {
         "en_us": {
           "name": "HDRP Sketch [Testing]"

@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: 4be9ba5af22c55e449c152e395432f00
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - controller: {instanceID: 0}
+  - lHandle: {instanceID: 0}
+  - cHandle: {instanceID: 0}
+  - rHandle: {instanceID: 0}
+  - speedText: {instanceID: 0}
+  - l: {instanceID: 0}
+  - r: {instanceID: 0}
+  - v: {instanceID: 0}
+  - thrusters: {instanceID: 0}
+  - handleVisual: {instanceID: 0}
+  - proximityShader: {fileID: 2100000, guid: 92c60f78b6049f14a919396c8dcb3aa6, type: 2}
+  - translucent: {fileID: 2100000, guid: 2499ec639a82d7a428853d24ffa1b584, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
