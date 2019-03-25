@@ -34,6 +34,16 @@ namespace FlipCrinRob.Scripts
             c.transform.position = new Vector3(position.x, y.position.y, position.z);
         }
         
+        public static void SplitRotation(Transform controller, Transform target, bool follow)
+        {
+            if (controller == null || target == null) return;
+            var c = controller.eulerAngles;
+            target.transform.eulerAngles = new Vector3(0, c.y, 0);
+            
+            if(!follow) return;
+            Position(target, controller);
+        }
+        
         public static void TransformLerpPosition(Transform a, Transform b, float l)
         {
             if (a == null || b == null) return;
@@ -57,6 +67,13 @@ namespace FlipCrinRob.Scripts
         {
             if (a == null || b == null) return 0f;
             return Vector3.Distance(a.position, b.position) *.5f;
+        }
+
+        public static void ForwardVector(Transform a, Transform b)
+        {
+            if (a == null || b == null) return;
+
+            a.forward = b.forward;
         }
 
         public static void MidpointPosition(Transform target, Transform a, Transform b, bool lookAt)
@@ -137,6 +154,13 @@ namespace FlipCrinRob.Scripts
                 originalPos.x,
                 originalPos.y,
                 originalPos.z + factor);
+        }
+
+        public static void LocalDepth(Transform a, float z)
+        {
+            if (a == null) return;
+            var p = a.localPosition;
+            a.localPosition = new Vector3(p.x,p.y, z);
         }
 
         public static void VisualState(Transform t, SelectableObject s, Vector3 scale, Vector3 pos, TMP_FontAsset font, Color color)

@@ -61,7 +61,7 @@ namespace FlipCrinRob.Scripts
 		[TabGroup("Object Lists")] public List<GameObject> rHandList;
 		[TabGroup("Object Lists")] public List<GameObject> lHandList;
 
-		[TabGroup("Aesthetics")] [Range(0f, 30f)] public int lineRenderQuality = 15;
+		[TabGroup("Aesthetics")] [Range(3f, 30f)] public int lineRenderQuality = 15;
 		[TabGroup("Aesthetics")] [Range(0f, 2.5f)] public float offset = 1f;
 		
 		#endregion

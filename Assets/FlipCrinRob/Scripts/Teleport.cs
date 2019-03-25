@@ -1,190 +1,205 @@
-﻿using UnityEngine;
+﻿using System;
+using DG.Tweening;
+using Sirenix.OdinInspector;
+using UnityEngine;
 
 namespace FlipCrinRob.Scripts
 {
     [RequireComponent(typeof(ControllerTransforms))]
     public class Teleport : MonoBehaviour
     {
-        private const float Min = .15f;
-        private const float Max = .65f;
+
         private GameObject parent;
         
-        private GameObject lH;
-        private GameObject rH;
-        private GameObject lC;
-        private GameObject rC;
-        private GameObject lM;
-        private GameObject lS;
-        private GameObject rM;
-        private GameObject rS;
-
-        private GameObject cL;
-        private GameObject lN;
-        private GameObject lP;
-        private GameObject lA;
-        private GameObject lX;
-        private GameObject lF;
-
-        private GameObject cR;
-        private GameObject rN;
-        private GameObject rP;
-        private GameObject rA;
-        private GameObject rX;
-        private GameObject rF;
+        private GameObject rCf; // follow
+        private GameObject rCp; // proxy
+        private GameObject rCn; // normalised
+        private GameObject rMp; // midpoint
+        private GameObject rTs; // target
+        private GameObject rHp; // hit
+        private GameObject rVo; // visual
         
-        private ControllerTransforms controller;
+        private GameObject lCf; // follow
+        private GameObject lCp; // proxy
+        private GameObject lCn; // normalised
+        private GameObject lMp; // midpoint
+        private GameObject lTs; // target
+        private GameObject lHp; // hit
+        private GameObject lVo; // visual
+
+        [HideInInspector] public LineRenderer lLr;
+        [HideInInspector] public LineRenderer rLr;
+        
+        private const float MaxAngle = 60f;
+        private const float MinAngle = 0f;
+
+        private bool pTouchR;
+        private bool pTouchL;
+
+        private enum Method
+        {
+            Dash,
+            Blink
+        }
+        
+        [BoxGroup("Distance Settings")] [Range(.15f, 1f)] [SerializeField] private float min = .5f;
+        [BoxGroup("Distance Settings")] [Range(1f, 100f)] [SerializeField] private float max = 15f;
+        [TabGroup("Teleport Settings")] [SerializeField] private Method teleportType;
+        [TabGroup("Teleport Settings")] [SerializeField] private bool disableLeftHand;
+        [TabGroup("Teleport Settings")] [SerializeField] private bool disableRightHand;
+        [TabGroup("Aesthetic Settings")] [SerializeField] [Required] private GameObject destination;
+        [TabGroup("Aesthetic Settings")] [SerializeField] [Required] private AnimationCurve teleportEasing;
+        [TabGroup("Aesthetic Settings")] [Range(0f, 1f)] [SerializeField] private float teleportSpeed = .75f;
+        [TabGroup("Aesthetic Settings")] [SerializeField] [Required] private Material lineRenderMat;
+        [TabGroup("Aesthetic Settings")] [Range(3f, 50f)] [SerializeField] private int lineRenderQuality = 40;
+        
+        private ControllerTransforms c;
         
         private void Start()
         {
+            c = GetComponent<ControllerTransforms>();
             SetupGameObjects();
-            controller = GetComponent<ControllerTransforms>();
         }
 
         private void SetupGameObjects()
         {
-            parent = new GameObject("TeleportGameobjects");
+            parent = new GameObject("Teleport/Calculations");
             var p = parent.transform;
+            p.SetParent(transform);
             
-            lH = new GameObject("lH");
-            lH.transform.SetParent(p);
+            rCf = new GameObject("Teleport/Follow/Right");
+            rCp = new GameObject("Teleport/Proxy/Right");
+            rCn = new GameObject("Teleport/Normalised/Right");
+            rMp = new GameObject("Teleport/MidPoint/Right");
+            rTs = new GameObject("Teleport/Target/Right");
+            rHp = new GameObject("Teleport/HitPoint/Right");
             
-            rH = new GameObject("rH");
-            rH.transform.SetParent(p);
+            lCf = new GameObject("Teleport/Follow/Left");
+            lCp = new GameObject("Teleport/Proxy/Left");
+            lCn = new GameObject("Teleport/Normalised/Left");
+            lMp = new GameObject("Teleport/MidPoint/Left");
+            lTs = new GameObject("Teleport/Target/Left");
+            lHp = new GameObject("Teleport/HitPoint/Left");
             
-            lC = new GameObject("lC");
-            lC.transform.SetParent(lH.transform);
+            rVo = Instantiate(destination, rHp.transform);
+            rVo.name = "Teleport/Visual/Right";
+            rVo.SetActive(false);
             
-            rC = new GameObject("rC");
-            rC.transform.SetParent(rH.transform);
+            lVo = Instantiate(destination, lHp.transform);
+            lVo.name = "Teleport/Visual/Left";
+            lVo.SetActive(false);
             
-            lM = new GameObject("lM");
-            lM.transform.SetParent(lH.transform);
+            rCf.transform.SetParent(p);
+            rCp.transform.SetParent(rCf.transform);
+            rCn.transform.SetParent(rCf.transform);
+            rMp.transform.SetParent(rCp.transform);
+            rTs.transform.SetParent(rCn.transform);
+            rHp.transform.SetParent(rTs.transform);
             
-            rM = new GameObject("rM");
-            rM.transform.SetParent(rH.transform);
+            lCf.transform.SetParent(p);
+            lCp.transform.SetParent(lCf.transform);
+            lCn.transform.SetParent(lCf.transform);
+            lMp.transform.SetParent(lCp.transform);
+            lTs.transform.SetParent(lCn.transform);
+            lHp.transform.SetParent(lTs.transform);
             
-            lS = new GameObject("lS");
-            lS.transform.SetParent(lH.transform);
+            rLr = rCp.AddComponent<LineRenderer>();
+            Setup.LineRender(rLr, lineRenderMat, .005f, false);
             
-            rS = new GameObject("rS");
-            rS.transform.SetParent(rH.transform);
-            
-            cL = new GameObject("cL");
-            cL.transform.SetParent(p);
-            
-            lN = new GameObject("lN");
-            lN.transform.SetParent(p);
-            
-            cR = new GameObject("cR");
-            cR.transform.SetParent(p);
-            
-            rN = new GameObject("rN");
-            rN.transform.SetParent(p);
-            
-            lP = new GameObject("lP");
-            lP.transform.SetParent(p);
-            
-            rP = new GameObject("rP");
-            rP.transform.SetParent(p);
-            
-            lA = new GameObject("lA");
-            lA.transform.SetParent(p);
-            
-            rA = new GameObject("rA");
-            rA.transform.SetParent(p);
-            
-            lX = new GameObject("lX");
-            lX.transform.SetParent(p); 
-            
-            rX = new GameObject("rX");
-            rX.transform.SetParent(p);
-            
-            lF = new GameObject("lF");
-            lF.transform.SetParent(p);
-            
-            rF = new GameObject("rF");
-            rF.transform.SetParent(p);
+            lLr = lCp.AddComponent<LineRenderer>();
+            Setup.LineRender(lLr, lineRenderMat, .005f, false);
         }
 
         private void Update()
         {
-            SetTransform(lH, lC, lM, lS, controller.CameraTransform(), controller.LeftControllerTransform(), controller.debugActive);
-            SetTransform(rH, rC, rM, rS,controller.CameraTransform(), controller.RightControllerTransform(), controller.debugActive);
-            CalculateCenter(controller.CameraTransform(), controller.LeftControllerTransform(), cL, lN, lP, lA, lX, lF, controller.debugActive);
-            CalculateCenter(controller.CameraTransform(), controller.RightControllerTransform(), cR, rN, rP, rA, rX, rF, controller.debugActive);
+            Set.LocalDepth(rTs.transform, CalculateDepth(ControllerAngle(rCf, rCp, rCn, c.RightControllerTransform(), c.CameraTransform(), c.debugActive), max, min, rCp.transform));
+            Set.LocalDepth(lTs.transform, CalculateDepth(ControllerAngle(lCf, lCp, lCn, c.LeftControllerTransform(), c.CameraTransform(), c.debugActive), max, min, lCp.transform));
+
+            TeleportLocation(rTs, rHp, transform);
+            TeleportLocation(lTs, lHp, transform);
+
+            Set.LocalDepth(rMp.transform, Set.Midpoint(rCp.transform, rTs.transform));
+            Set.LocalDepth(lMp.transform, Set.Midpoint(rCp.transform, rTs.transform));
+
+            DrawLineRender(rLr, c.RightControllerTransform(), rMp.transform, rHp.transform, lineRenderQuality, c.RightTouchpad(), disableRightHand);            
+            DrawLineRender(lLr, c.LeftControllerTransform(), lMp.transform, lHp.transform, lineRenderQuality, c.LeftTouchpad(), disableLeftHand);
+
         }
 
-        private static void SetTransform(GameObject G, GameObject H, GameObject M, GameObject S, Transform C, Transform T, bool d)
+        private void LateUpdate()
         {
-            var c = C.position;
-            var t = T.position;
-            var g = G.transform.position;
-            var s = S.transform.position;
-            var z = H.transform.localPosition.z;
-            
-            var x = new Vector3(c.x, t.y, c.z);
-            var m = Mathf.Pow(Mathf.InverseLerp(Min, Max, z), 2f);
-           
-            G.transform.position = x;
-            G.transform.LookAt(t);
-            H.transform.position = t;
-            M.transform.localPosition = new Vector3(0,0,z * m);
-            S.transform.position = new Vector3(c.x, 0, c.z);
-            S.transform.LookAt(C);
-            
-            #region Debug Lines
+            ObjectMethods.Teleport(this, c.RightTouchpad(), pTouchR, rVo, rHp);
+            ObjectMethods.Teleport(this, c.LeftTouchpad(), pTouchL, lVo, lHp);
+            pTouchR = c.RightTouchpad();
+            pTouchL = c.LeftTouchpad();
+        }
 
-            if (!d) return;
-            
-            Debug.DrawLine(g, t, Color.cyan);
-            Debug.DrawRay(M.transform.position, M.transform.up * m, Color.cyan);
-            Debug.DrawRay(g, G.transform.up * .25f, Color.green);
-            Debug.DrawRay(g, G.transform.right * .25f, Color.red);
-            Debug.DrawRay(g, G.transform.forward * .25f, Color.blue);
-            
-            Debug.DrawRay(s, S.transform.forward, Color.magenta);
-
-            #endregion
+        public void TeleportStart(GameObject visual)
+        {
+            visual.SetActive(true);
+        }
+        public void TeleportStay(GameObject visual)
+        {
             
         }
-        private static void CalculateCenter(Component cam, Transform con, GameObject C, GameObject N, GameObject P, GameObject A, GameObject X, GameObject F, bool d)
+        public void TeleportEnd(GameObject visual, Transform target)
         {
-            Set.Transforms(C.transform, con);
-            var c = C.transform.position;
-            var r = C.transform.eulerAngles;
-            var n = cam.transform.position;
-            
-            var cN = new Vector3(c.x, 0, c.z);
-            var cR = new Vector3(0, r.y, 0);
-            var nC = new Vector3(n.x, 0f, n.z);
-            
-            var i = Intersection.Line(nC, P.transform.right, cN, N.transform.forward, .1f);
-            X.transform.position = i;
-            var x = Intersection.Line(i, X.transform.up, c, C.transform.forward, .1f);
-            var iA = new Vector3(i.x, c.y, i.z);
-            var f = new Vector3(n.x, x.y, n.z);
-            
-            N.transform.position = cN;
-            N.transform.eulerAngles = cR;
-            P.transform.position = nC;
-            P.transform.eulerAngles = cR;
-            A.transform.position = iA;
+            transform.DOMove(target.position, teleportSpeed);
+            visual.SetActive(false);
+        }
+        
+        private static void DrawLineRender(LineRenderer lr, Transform con, Transform mid, Transform end, int quality, bool touch, bool hand)
+        {
+            lr.enabled = touch && !hand;
+            BezierCurve.BezierLineRenderer(lr,
+                con.position,
+                mid.position,
+                end.position,
+                quality);
+        }
+        private static float ControllerAngle(GameObject follow, GameObject proxy, GameObject normal, Transform controller, Transform head, bool debug)
+        {
+            //Set.Transforms(proxy.transform, controller);
+            Set.Position(proxy.transform, controller);
+            Set.ForwardVector(proxy.transform, controller);
+            Set.SplitRotation(proxy.transform, normal.transform, true);
+            Set.SplitPosition(head, controller, follow.transform);
+            follow.transform.LookAt(proxy.transform);
 
-            F.transform.position = f;
-            F.transform.LookAt(con);
             
-            #region Debug Lines
-
-            if (!d) return;
-
-            Debug.DrawLine(c, x, Color.blue);
-            Debug.DrawLine(cN, i, Color.blue);
-            Debug.DrawLine(c, cN, Color.cyan);            
-            Debug.DrawLine(nC, i, Color.red);
-            Debug.DrawLine(i, x, Color.green);
-            Debug.DrawLine(f, c, Color.yellow);
             
-            #endregion
+            if (!debug) return Vector3.Angle(normal.transform.forward, proxy.transform.forward);
+            
+            var normalForward = normal.transform.forward;
+            var proxyForward = proxy.transform.forward;
+            var position = proxy.transform.position;
+            
+            Debug.DrawLine(follow.transform.position, position, Color.red);
+            Debug.DrawRay(normal.transform.position, normalForward, Color.blue);
+            Debug.DrawRay(position, proxyForward, Color.blue);
+
+            return Vector3.Angle(normalForward, proxyForward);
+        }
+        private static float CalculateDepth(float angle, float max, float min, Transform proxy)
+        {
+            var a = angle;
+
+            a = a > MaxAngle ? MaxAngle : a;
+            a = a < MinAngle ? MinAngle : a;
+
+            a = proxy.eulerAngles.x < 180 ? MinAngle : a;
+            
+            var proportion = Mathf.InverseLerp(MaxAngle, MinAngle, a);
+            return Mathf.Lerp(max, min, proportion);
+        }
+
+        private static void TeleportLocation(GameObject target, GameObject hitpoint, Transform current)
+        {
+            var t = target.transform;
+            var position = t.position;
+            var up = t.up;
+            hitpoint.transform.position = Physics.Raycast(position, -up, out var hit) ? hit.point : current.position;
+            hitpoint.transform.up = Physics.Raycast(position, -up, out var h) ? h.normal : current.transform.up;
         }
     }
 }

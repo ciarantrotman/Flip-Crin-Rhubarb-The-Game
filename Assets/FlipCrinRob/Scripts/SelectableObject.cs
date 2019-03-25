@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using DG.Tweening;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -65,6 +66,7 @@ namespace FlipCrinRob.Scripts
 		[TabGroup("Button Settings")] [ShowIf("button")] [Space(10)] [SerializeField] private bool genericSelectState;
 		[TabGroup("Button Settings")] [ShowIf("button")] [ShowIf("genericSelectState")] [Indent] [Range(0, 1f)] [SerializeField] private float selectOffset;
 		[TabGroup("Button Settings")] [ShowIf("button")] [ShowIf("genericSelectState")] [Indent] [Range(0, 1f)] [SerializeField] private float selectScale;
+		[TabGroup("Button Settings")] [ShowIf("button")] [ShowIf("genericSelectState")] [Indent] [Range(0, 1f)] [SerializeField] private float selectEffectDuration = .1f;
 		[TabGroup("Button Settings")] [ShowIf("button")] [ShowIf("genericSelectState")] [Indent] [SerializeField] private TMP_FontAsset activeFont;
 		[TabGroup("Button Settings")] [ShowIf("button")] [ShowIf("genericSelectState")] [Indent] [SerializeField] private TMP_FontAsset inactiveFont;
 		[TabGroup("Button Settings")] [ShowIf("button")] [ShowIf("genericSelectState")] [Indent] [SerializeField] private Color activeColor = new Color(0,0,0,255);
@@ -81,6 +83,7 @@ namespace FlipCrinRob.Scripts
 		[BoxGroup("Hover Settings")] [ShowIf("hover")] [Indent] [SerializeField] private bool genericHoverEffect;
 		[BoxGroup("Hover Settings")] [ShowIf("hover")] [ShowIf("genericHoverEffect")] [Indent(2)] [Range(0, 1f)] [SerializeField] private float hoverOffset;
 		[BoxGroup("Hover Settings")] [ShowIf("hover")] [ShowIf("genericHoverEffect")] [Indent(2)] [Range(0, 1f)] [SerializeField] private float hoverScale;
+		[BoxGroup("Hover Settings")] [ShowIf("hover")] [ShowIf("genericHoverEffect")] [Indent(2)] [Range(0, 1f)] [SerializeField] private float hoverEffectDuration;
 		[BoxGroup("Hover Settings")] [ShowIf("hover")] [HideIf("genericHoverEffect")] [SerializeField] private UnityEvent hoverStart;
 		[BoxGroup("Hover Settings")] [ShowIf("hover")] [HideIf("genericHoverEffect")] [SerializeField] private UnityEvent hoverStay;
 		[BoxGroup("Hover Settings")] [ShowIf("hover")] [HideIf("genericHoverEffect")] [SerializeField] private UnityEvent hoverEnd;
@@ -313,13 +316,11 @@ namespace FlipCrinRob.Scripts
 			var t = transform;
 			defaultLocalScale = t.localScale;
 			defaultLocalPosition = t.localPosition;
-			
-			// BUG: Replace with Tween Sequence!
 
-			t.localScale = Set.LocalScale(defaultLocalScale, hoverScale);
+			t.DOScale(Set.LocalScale(defaultLocalScale, hoverScale), hoverEffectDuration);
 			
-			if (rb.velocity != Vector3.zero) return;
-			t.localPosition = Set.LocalPosition(defaultLocalPosition, hoverOffset);
+			if (rb.velocity != Vector3.zero || hoverOffset <= 0) return;
+			t.DOLocalMove(Set.LocalPosition(defaultLocalPosition, hoverOffset), hoverEffectDuration);
 		}
 		public void HoverStay()
 		{
@@ -333,12 +334,10 @@ namespace FlipCrinRob.Scripts
 			
 			var t = transform;
 			
-			// BUG: Replace with Tween Sequence!
+			t.DOScale(defaultLocalScale, hoverEffectDuration);
 			
-			t.localScale = defaultLocalScale;
-			
-			if (rb.velocity != Vector3.zero) return;
-			t.localPosition = defaultLocalPosition;
+			if (rb.velocity != Vector3.zero || hoverOffset <= 0) return;
+			t.DOLocalMove(defaultLocalPosition, hoverEffectDuration);
 		}
 		public void SelectStart()
 		{

@@ -54,6 +54,23 @@ namespace FlipCrinRob.Scripts
                 previous.HoverEnd();
             }
         }
+
+        public static void Teleport(Teleport t, bool current, bool previous, GameObject visual, GameObject target)
+        {
+            if (t != null)
+            if (current && !previous)
+            {
+                t.TeleportStart(visual);
+            }
+            if (current && previous)
+            {
+                t.TeleportStay(visual);
+            }
+            if (!current && previous)
+            {
+                t.TeleportEnd(visual, target.transform);
+            }
+        }
         
         public static GameObject RayCastFindFocusObject(List<GameObject> objects, GameObject current, GameObject target, GameObject inactive, Transform controller, float distance, bool disable)
         {
@@ -66,13 +83,13 @@ namespace FlipCrinRob.Scripts
             {
                 target.transform.SetParent(hit.transform);
                 Set.VectorLerpPosition(target.transform, hit.point, .15f);
-                Debug.DrawRay(position, forward * hit.distance, Color.green);
+                //Debug.DrawRay(position, forward * hit.distance, Color.green);
                 return hit.transform.gameObject;
             }
 
             target.transform.SetParent(null);
             Set.TransformLerpPosition(target.transform, inactive.transform, .1f);
-            Debug.DrawRay(position, forward * distance, Color.red);
+            //Debug.DrawRay(position, forward * distance, Color.red);
             return null;
         }
         
@@ -95,7 +112,7 @@ namespace FlipCrinRob.Scripts
             {
                 target.transform.SetParent(hit.transform);
                 Set.VectorLerpPosition(target.transform, hit.point, .25f);
-                Debug.DrawRay(position, forward * hit.distance, Color.green);
+                //Debug.DrawRay(position, forward * hit.distance, Color.green);
                 return hit.transform.gameObject;
             }
 
@@ -103,13 +120,13 @@ namespace FlipCrinRob.Scripts
             {
                 target.transform.SetParent(objects[0].gameObject.transform);
                 Set.TransformLerpPosition(target.transform, objects[0].gameObject.transform, .25f);
-                Debug.DrawRay(position, forward * distance, Color.red);
+                //Debug.DrawRay(position, forward * distance, Color.red);
                 return objects[0].gameObject;
             }
             
             target.transform.SetParent(null);
             Set.TransformLerpPosition(target.transform, inactive.transform, .2f);
-            Debug.DrawRay(position, forward * distance, Color.red);
+            //Debug.DrawRay(position, forward * distance, Color.red);
             return null;
         }
 

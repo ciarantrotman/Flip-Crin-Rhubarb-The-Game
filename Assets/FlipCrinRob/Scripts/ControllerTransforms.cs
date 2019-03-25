@@ -22,9 +22,10 @@ namespace FlipCrinRob.Scripts
         [TabGroup("Button Events")] [SerializeField] private SDK VR_SDK;
         [TabGroup("Button Events")] public SteamVR_Action_Boolean grabGrip;
         [TabGroup("Button Events")] public SteamVR_Action_Boolean triggerGrip;
+        [TabGroup("Button Events")] public SteamVR_Action_Boolean touchpadPress;
         [TabGroup("Button Events")] public SteamVR_Action_Vibration haptic;
        
-        [TabGroup("Aesthetics")][SerializeField] public Material lineRenderMat;
+        [TabGroup("Aesthetics")][ SerializeField] [Required] public Material lineRenderMat;
         
         public Transform LeftControllerTransform()
         {
@@ -64,6 +65,16 @@ namespace FlipCrinRob.Scripts
         public bool RightSelect()
         {
             return triggerGrip.GetState(SteamVR_Input_Sources.RightHand);
+        }
+        
+        public bool LeftTouchpad()
+        {
+            return touchpadPress.GetState(SteamVR_Input_Sources.LeftHand);
+        }
+        
+        public bool RightTouchpad()
+        {
+            return touchpadPress.GetState(SteamVR_Input_Sources.RightHand);
         }
 
         public Vector3 LeftForwardVector()
