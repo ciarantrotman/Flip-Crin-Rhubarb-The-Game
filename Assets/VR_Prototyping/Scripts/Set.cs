@@ -144,9 +144,9 @@ namespace VR_Prototyping.Scripts
         public static Vector3 LocalScale(Vector3 originalScale, float factor)
         {
             return new Vector3(
-                originalScale.x + (originalScale.x * factor),
-                originalScale.y + (originalScale.y * factor),
-                originalScale.z + (originalScale.z * factor));
+                originalScale.x + originalScale.x * factor,
+                originalScale.y + originalScale.y * factor,
+                originalScale.z + originalScale.z * factor);
         }
 
         public static Vector3 LocalPosition(Vector3 originalPos, float factor)
@@ -179,6 +179,21 @@ namespace VR_Prototyping.Scripts
         {
             s.buttonText.font = font;
             s.Renderer.material.color = color;
+        }
+
+        public static Vector3 Offset(Transform a, Transform b)
+        {
+            var x = a.position;
+            var y = b.position;
+            var xN = new Vector3(x.x, 0, x.z);
+            var yN = new Vector3(y.x, 0, y.z);
+            
+            return yN - xN;
+        }
+        
+        public static float Divergence(Transform a, Transform b)
+        {           
+            return Vector3.Angle(a.forward, b.forward);
         }
     }
 }

@@ -56,21 +56,21 @@ namespace VR_Prototyping.Scripts
             }
         }
 
-        public static void Locomotion(Locomotion t, bool current, bool previous, GameObject visual, GameObject target)
+        public static void Locomotion(Locomotion t, bool current, bool previous, GameObject visual)
         {
-            //if (t != null)
-            //if (current && !previous)
-            //{
-            //    t.LocomotionStart(visual);
-            //}
-            //if (current && previous)
-            //{
-            //    t.LocomotionStay(visual);
-            //}
-            //if (!current && previous)
-            //{
-            //    t.LocomotionEnd(visual, target.transform);
-            //}
+            if (t != null)
+            if (current && !previous)
+            {
+                t.LocomotionStart(visual);
+            }
+            if (current && previous)
+            {
+                t.LocomotionStay(visual);
+            }
+            if (!current && previous)
+            {
+                t.LocomotionEnd(visual);
+            }
         }
         
         public static GameObject RayCastFindFocusObject(List<GameObject> objects, GameObject current, GameObject target, GameObject inactive, Transform controller, float distance, bool disable)

@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using DG.Tweening;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Animations;
 
 namespace VR_Prototyping.Scripts
 {
@@ -12,6 +13,7 @@ namespace VR_Prototyping.Scripts
     {
 
         private GameObject parent;
+        private GameObject cN;
         
         private GameObject rCf; // follow
         private GameObject rCp; // proxy
@@ -20,6 +22,7 @@ namespace VR_Prototyping.Scripts
         private GameObject rTs; // target
         private GameObject rHp; // hit
         private GameObject rVo; // visual
+        private GameObject rRt; // rotation
         
         private GameObject lCf; // follow
         private GameObject lCp; // proxy
@@ -28,6 +31,7 @@ namespace VR_Prototyping.Scripts
         private GameObject lTs; // target
         private GameObject lHp; // hit
         private GameObject lVo; // visual
+        private GameObject lRt; // rotation
 
         [HideInInspector] public LineRenderer lLr;
         [HideInInspector] public LineRenderer rLr;
@@ -44,6 +48,8 @@ namespace VR_Prototyping.Scripts
         
         private bool pTouchR;
         private bool pTouchL;
+        
+        private bool constrain;
 
         private enum Method
         {
@@ -79,19 +85,23 @@ namespace VR_Prototyping.Scripts
             var p = parent.transform;
             p.SetParent(transform);
             
+            cN = new GameObject("Locomotion/Temporary");
+            
             rCf = new GameObject("Locomotion/Follow/Right");
             rCp = new GameObject("Locomotion/Proxy/Right");
             rCn = new GameObject("Locomotion/Normalised/Right");
             rMp = new GameObject("Locomotion/MidPoint/Right");
             rTs = new GameObject("Locomotion/Target/Right");
             rHp = new GameObject("Locomotion/HitPoint/Right");
+            rRt = new GameObject("Locomotion/Rotation/Right");
             
             lCf = new GameObject("Locomotion/Follow/Left");
             lCp = new GameObject("Locomotion/Proxy/Left");
             lCn = new GameObject("Locomotion/Normalised/Left");
             lMp = new GameObject("Locomotion/MidPoint/Left");
             lTs = new GameObject("Locomotion/Target/Left");
-            lHp = new GameObject("LocomotionTeleport/HitPoint/Left");
+            lHp = new GameObject("Locomotion/HitPoint/Left");
+            lRt = new GameObject("Locomotion/Rotation/Left");
             
             rVo = Instantiate(targetVisual, rHp.transform);
             rVo.name = "Locomotion/Visual/Right";
@@ -107,6 +117,7 @@ namespace VR_Prototyping.Scripts
             rMp.transform.SetParent(rCp.transform);
             rTs.transform.SetParent(rCn.transform);
             rHp.transform.SetParent(rTs.transform);
+            rRt.transform.SetParent(rHp.transform);
             
             lCf.transform.SetParent(p);
             lCp.transform.SetParent(lCf.transform);
@@ -114,6 +125,7 @@ namespace VR_Prototyping.Scripts
             lMp.transform.SetParent(lCp.transform);
             lTs.transform.SetParent(lCn.transform);
             lHp.transform.SetParent(lTs.transform);
+            lRt.transform.SetParent(lHp.transform);
             
             rLr = rCp.AddComponent<LineRenderer>();
             Setup.LineRender(rLr, lineRenderMat, .005f, false);
@@ -135,26 +147,40 @@ namespace VR_Prototyping.Scripts
 
             DrawLineRender(rLr, c.RightControllerTransform(), rMp.transform, rHp.transform, lineRenderQuality, c.RightJoystickPress(), disableRightHand);            
             DrawLineRender(lLr, c.LeftControllerTransform(), lMp.transform, lHp.transform, lineRenderQuality, c.LeftJoystickPress(), disableLeftHand);
+            
+            Target(rVo, rHp, rCn.transform, c.RightJoystick(), rRt);
+            Target(lVo, lHp, lCn.transform, c.LeftJoystick(), lRt);
+        }
 
+        private static void Target(GameObject visual, GameObject parent, Transform normal, Vector2 pos, GameObject target)
+        {
+            visual.transform.LookAt(RotationTarget(pos, target));
+            parent.transform.forward = normal.forward;
+        }
+        
+        private static Transform RotationTarget(Vector2 pos, GameObject target)
+        {
+            target.transform.localPosition = Math.Abs(pos.x) > Trigger || Math.Abs(pos.y) > Trigger ? Vector3.Lerp(target.transform.localPosition, new Vector3(pos.x, 0, pos.y), .1f) : Vector3.forward;
+            return target.transform;
         }
 
         private void LateUpdate()
         {
-            //ObjectMethods.Locomotion(this, c.RightJoystickPress(), pTouchR, rVo, rHp);
-            //ObjectMethods.Locomotion(this, c.LeftJoystickPress(), pTouchL, lVo, lHp);
-            //pTouchR = c.RightJoystickPress();
-            //pTouchL = c.LeftJoystickPress();
+            ObjectMethods.Locomotion(this, c.RightJoystickPress(), pTouchR, rVo);
+            ObjectMethods.Locomotion(this, c.LeftJoystickPress(), pTouchL, lVo);
+            pTouchR = c.RightJoystickPress();
+            pTouchL = c.LeftJoystickPress();
 
             if (rotation && c.RightJoystick().x > Trigger)
             {
                 Debug.Log(c.RightJoystick().x + " : " + Trigger);
                 StartCoroutine(RotationCheckRight(RotationAngle(angle), rotateSpeed));
             }
-            //if (rotation && c.RightJoystick().x > -Trigger)
-            //{
-            //    Debug.Log(c.RightJoystick().x + " : " + -Trigger);
-            //    //StartCoroutine(RotationCheckLeft(RotationAngle(-angle), rotateSpeed));
-            //}
+            if (rotation && c.RightJoystick().x > -Trigger)
+            {
+                Debug.Log(c.RightJoystick().x + " : " + -Trigger);
+                //StartCoroutine(RotationCheckLeft(RotationAngle(-angle), rotateSpeed));
+            }
         }
 
         private Vector3 RotationAngle(float a)
@@ -172,25 +198,58 @@ namespace VR_Prototyping.Scripts
         {
             yield return new WaitForSeconds(Sensitivity);
             var check = c.RightJoystick().x- 0 <= Tolerance;
-            //transform.DORotate(a, d);
             transform.RotateAround(c.CameraPosition(), Vector3.up, angle);
             print(check);
         }
 
         public void LocomotionStart(GameObject visual)
         {
+            constrain = true;
             visual.SetActive(true);
         }
         public void LocomotionStay(GameObject visual)
         {
-            
+            Set.SplitRotation(c.CameraTransform(), cN.transform, false);
+            Set.SplitPosition(c.CameraTransform(), transform, cN.transform);
         }
-        public void LocomotionEnd(GameObject visual, Transform target)
+        public void LocomotionEnd(GameObject visual)
         {
-            transform.DOMove(target.position, moveSpeed);
+            var p = transform;
+            var v = visual.transform;
+            var forward = cN.transform.forward;
+            var pc = Vector3.Angle(p.forward, forward);
+            var cv = Vector3.Angle(forward, v.forward);
+            var apply = pc + cv;
+            transform.SetParent(cN.transform);
+            switch (locomotionMethod)
+            {
+                case Method.Dash:
+                    //cN.transform.DOMove(v.position + Set.Offset(c.CameraTransform(), p), moveSpeed);
+                    cN.transform.DOMove(v.position, moveSpeed);
+                    //cN.transform.RotateAround(c.CameraPosition(), Vector3.up, apply);
+                    cN.transform.DORotate(v.eulerAngles, moveSpeed);
+                    StartCoroutine(Uncouple(transform, moveSpeed));
+                    break;
+                case Method.Blink:
+                    cN.transform.position = v.position;
+                    cN.transform.rotation = v.rotation;
+                    transform.SetParent(null);
+                    break;
+                default:
+                    throw new ArgumentException();
+            }
+            
             visual.SetActive(false);
+            constrain = false;
         }
-        
+
+        private IEnumerator Uncouple(Transform a, float time)
+        {
+            yield return new WaitForSeconds(time);
+            a.transform.SetParent(constrain ? a.transform.parent: null);
+            yield return null;
+        }
+
         private static void DrawLineRender(LineRenderer lr, Transform con, Transform mid, Transform end, int quality, bool touch, bool hand)
         {
             lr.enabled = touch && !hand;
@@ -202,15 +261,12 @@ namespace VR_Prototyping.Scripts
         }
         private static float ControllerAngle(GameObject follow, GameObject proxy, GameObject normal, Transform controller, Transform head, bool debug)
         {
-            //Set.Transforms(proxy.transform, controller);
             Set.Position(proxy.transform, controller);
             Set.ForwardVector(proxy.transform, controller);
             Set.SplitRotation(proxy.transform, normal.transform, true);
             Set.SplitPosition(head, controller, follow.transform);
             follow.transform.LookAt(proxy.transform);
 
-            
-            
             if (!debug) return Vector3.Angle(normal.transform.forward, proxy.transform.forward);
             
             var normalForward = normal.transform.forward;
