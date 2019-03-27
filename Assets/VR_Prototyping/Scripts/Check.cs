@@ -63,13 +63,9 @@ namespace VR_Prototyping.Scripts
             {
                 t.LocomotionStart(visual, lr);
             }
-            if (current && previous)
-            {
-                t.LocomotionStay(visual);
-            }
             if (!current && previous)
             {
-                t.LocomotionEnd(visual, lr);
+                t.LocomotionEnd(visual, visual.transform.position, visual.transform.eulerAngles, lr);
             }
         }
         

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using DG.Tweening;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Animations;
+using UnityEngine.Rendering.PostProcessing;
+using Valve.VR;
 
 namespace VR_Prototyping.Scripts
 {
@@ -40,11 +43,16 @@ namespace VR_Prototyping.Scripts
         private const float MinAngle = 0f;
         
         private const float Trigger = .65f;
-        private const float Sensitivity = .01f;
-        private const float Tolerance = .05f;
+        private const float Sensitivity = 10f;
+        private const float Tolerance = .1f;
+        
+        private List<Vector2> rJoystickValues = new List<Vector2>();
+        private List<Vector2> lJoystickValues = new List<Vector2>();
         
         private bool pTouchR;
         private bool pTouchL;
+
+        private Vector3 rRotTarget;
         
         private bool active;
 
@@ -67,6 +75,7 @@ namespace VR_Prototyping.Scripts
         [TabGroup("Aesthetic Settings")] [SerializeField] [Required] private AnimationCurve locomotionEasing;
         [TabGroup("Aesthetic Settings")] [SerializeField] [Required] private Material lineRenderMat;
         [TabGroup("Aesthetic Settings")] [Range(3f, 50f)] [SerializeField] private int lineRenderQuality = 40;
+        [TabGroup("Aesthetic Settings")] [SerializeField] private PostProcessVolume postProcessing;
         
         private ControllerTransforms c;
         
@@ -113,7 +122,7 @@ namespace VR_Prototyping.Scripts
             rCn.transform.SetParent(rCf.transform);
             rMp.transform.SetParent(rCp.transform);
             rTs.transform.SetParent(rCn.transform);
-            rHp.transform.SetParent(rTs.transform);
+            //rHp.transform.SetParent(rTs.transform);
             rRt.transform.SetParent(rHp.transform);
             
             lCf.transform.SetParent(p);
@@ -121,7 +130,7 @@ namespace VR_Prototyping.Scripts
             lCn.transform.SetParent(lCf.transform);
             lMp.transform.SetParent(lCp.transform);
             lTs.transform.SetParent(lCn.transform);
-            lHp.transform.SetParent(lTs.transform);
+            //lHp.transform.SetParent(lTs.transform);
             lRt.transform.SetParent(lHp.transform);
             
             rLr = rCp.AddComponent<LineRenderer>();
@@ -149,116 +158,81 @@ namespace VR_Prototyping.Scripts
             Target(lVo, lHp, lCn.transform, c.LeftJoystick(), lRt);
         }
 
-        private static void Target(GameObject visual, GameObject parent, Transform normal, Vector2 pos, GameObject target)
+        private static void Target(GameObject visual, GameObject parent, Transform normal, Vector2 pos, GameObject target)//, Vector3 rot)
         {
-            visual.transform.LookAt(RotationTarget(pos, target));
+            visual.transform.LookAt(RotationTarget(pos, target));//, rot));
+            
             parent.transform.forward = normal.forward;
         }
         
-        private static Transform RotationTarget(Vector2 pos, GameObject target)
+        private static Transform RotationTarget(Vector2 pos, GameObject target)//, Vector3 rot)
         {
-            target.transform.localPosition = Math.Abs(pos.x) > Trigger || Math.Abs(pos.y) > Trigger ? Vector3.Lerp(target.transform.localPosition, new Vector3(pos.x, 0, pos.y), .1f) : Vector3.forward;
+            //target.transform.localPosition = Math.Abs(pos.x) > Trigger || Math.Abs(pos.y) > Trigger ? Vector3.Lerp(target.transform.localPosition, new Vector3(pos.x, 0, pos.y), .1f) : Vector3.forward;
+            target.transform.localPosition = Vector3.Lerp(target.transform.localPosition, new Vector3(pos.x, 0, pos.y), .1f);
             return target.transform;
         }
 
         private void LateUpdate()
         {
-            //Check.Locomotion(this, c.RightJoystickPress(), pTouchR, rVo, rLr);
-            //Check.Locomotion(this, c.LeftJoystickPress(), pTouchL, lVo, lLr);
-            //pTouchR = c.RightJoystickPress();
-            //pTouchL = c.LeftJoystickPress();
+            Check.Locomotion(this, c.RightJoystickPress(), pTouchR, rVo, rLr);
+            Check.Locomotion(this, c.LeftJoystickPress(), pTouchL, lVo, lLr);
+            pTouchR = c.RightJoystickPress();
+            pTouchL = c.LeftJoystickPress();
             
-            Debug.Log("1: " + c.RightJoystick().x + ", " + c.RightJoystick().y);
+            JoystickTracking(rJoystickValues, c.RightJoystick());
+            JoystickTracking(lJoystickValues, c.LeftJoystick());
             
-            return;
-            
-            if (!active && (Mathf.Abs(c.RightJoystick().x) > Trigger || Mathf.Abs(c.RightJoystick().y) > Trigger))
-            {
-                Debug.Log("1: " + c.RightJoystick().x + ", " + c.RightJoystick().y);
-                StartCoroutine(RightGestureCheck());
-            }
-            else if (active && Mathf.Abs(c.RightJoystick().x) - 0 <= Tolerance && Mathf.Abs(c.RightJoystick().y) - 0 <= Tolerance)
-            {
-                LocomotionEnd(rVo, rLr);
-            }
-            
-            if (!active && (Mathf.Abs(c.LeftJoystick().x) > Trigger || Mathf.Abs(c.LeftJoystick().y) > Trigger))
-            {
-                StartCoroutine(LeftGestureCheck());
-            }
-            else if (active && Mathf.Abs(c.LeftJoystick().x) - 0 <= Tolerance && Mathf.Abs(c.LeftJoystick().y) - 0 <= Tolerance)
-            {
-                LocomotionEnd(lVo, lLr);
-            }
+            GestureDetection(c.RightJoystick(), rJoystickValues[0], angle, rotateSpeed, rVo, rLr, disableRightHand);
+            GestureDetection(c.LeftJoystick(), lJoystickValues[0], angle, rotateSpeed, lVo, lLr, disableLeftHand);
+        }
+
+        private static void JoystickTracking(List<Vector2> list, Vector2 current)
+        {
+            list.Add(current);
+            CullList(list);
         }
         
-        private IEnumerator RightGestureCheck()
+        private static void CullList(List<Vector2> list)
         {
-            var x = c.RightJoystick().x;
-            var y = c.RightJoystick().y;
-            
-            Debug.Log("2: " + x + ", " + y);
-            
-            yield return new WaitForSeconds(Sensitivity);
-            
-            Debug.Log("3: " + Sensitivity);
-            
-            if(Mathf.Abs(c.RightJoystick().x) - 0 <= Tolerance && Mathf.Abs(c.RightJoystick().y) - 0 <= Tolerance)
+            if (list.Count > Sensitivity)
             {
-                if (x > Tolerance)
-                {
-                    Debug.Log("4: " + x + ", " + c.RightJoystick().x);
-                    RotateUser(angle, rotateSpeed);
-                }
-                else if (x < -Tolerance)
-                {
-                    Debug.Log("4: " + x + ", " + c.RightJoystick().x);
-                    RotateUser(-angle, rotateSpeed);
-                }
-                else if (y < -Tolerance)
-                {
-                    Debug.Log("4: " + y + ", " + c.RightJoystick().y);
-                    RotateUser(180f, rotateSpeed);
-                }
+                list.RemoveAt(0);
             }
-            else if (Mathf.Abs(c.RightJoystick().x) >= Trigger && Mathf.Abs(c.RightJoystick().y) >= Trigger)
-            {
-                Debug.Log("4: " + x + ", " + c.RightJoystick().x + " / " + y + ", " + c.RightJoystick().y);
-                
-                LocomotionStart(rVo, rLr);
-            }
-            
-            yield return null;
         }
-        
-        private IEnumerator LeftGestureCheck()
+
+        private void GestureDetection(Vector2 current, Vector2 previous, float rot, float speed, GameObject visual, LineRenderer lr, bool disabled)
         {
-            var x = c.LeftJoystick().x;
-            var y = c.LeftJoystick().y;
+            if (disabled) return;
+            var trigger = Mathf.Abs(current.x) > Trigger || Mathf.Abs(current.y) > Trigger;
+            var tolerance = Mathf.Abs(previous.x) - 0 <= Tolerance && Mathf.Abs(previous.y) - 0 <= Tolerance;
+            var triggerEnd = Mathf.Abs(current.x) - 0 <= Tolerance && Mathf.Abs(current.y) - 0 <= Tolerance;
+            var toleranceEnd = Mathf.Abs(previous.x) > Trigger || Mathf.Abs(previous.y) > Trigger;
+
+            var latch = trigger && toleranceEnd;
             
-            yield return new WaitForSeconds(Sensitivity);
-            
-            if(Mathf.Abs(c.LeftJoystick().x) - 0 <= Tolerance && Mathf.Abs(c.LeftJoystick().y) - 0 <= Tolerance)
+            if (trigger && tolerance && !active && !latch)
             {
-                if (x > Tolerance)
+                if (current.x > Tolerance)
                 {
-                    RotateUser(angle, rotateSpeed);
+                    RotateUser(rot, speed);
                 }
-                else if (x < -Tolerance)
+                else if (current.x < -Tolerance)
                 {
-                    RotateUser(-angle, rotateSpeed);
+                    RotateUser(-rot, speed);
                 }
-                else if (y < -Tolerance)
+                else if (current.y < -Tolerance)
                 {
-                    RotateUser(180f, rotateSpeed);
+                    RotateUser(180f, speed);
+                }
+                else if (current.y > Tolerance)
+                {
+                    LocomotionStart(rVo, rLr);
                 }
             }
-            else if (Mathf.Abs(c.LeftJoystick().x) >= Trigger && Mathf.Abs(c.LeftJoystick().y) >= Trigger)
+            else if (triggerEnd && toleranceEnd && active)
             {
-                LocomotionStart(lVo, lLr);
+                LocomotionEnd(visual, visual.transform.position, visual.transform.eulerAngles, lr);
             }
-            
-            yield return null;
         }
 
         private static Vector3 RotationAngle(Transform target, float a)
@@ -270,6 +244,11 @@ namespace VR_Prototyping.Scripts
         private void RotateUser(float a, float time)
         {
             if(transform.parent == cN.transform || !rotation) return;
+            active = true;
+            
+            Set.SplitRotation(c.CameraTransform(), cN.transform, false);
+            Set.SplitPosition(c.CameraTransform(), transform, cN.transform);
+            
             transform.SetParent(cN.transform);
             cN.transform.DORotate(RotationAngle(cN.transform, a), time);
             StartCoroutine(Uncouple(transform, time));
@@ -281,31 +260,28 @@ namespace VR_Prototyping.Scripts
             lr.enabled = true;
             active = true;
         }
-        public void LocomotionStay(GameObject visual)
-        {
-            
-        }
-        public void LocomotionEnd(GameObject visual, LineRenderer lr)
+        
+        public void LocomotionEnd(GameObject visual, Vector3 posTarget, Vector3 rotTarget, LineRenderer lr)
         {
             if (transform.parent == cN.transform) return;
-            
-            var v = visual.transform;
-            
+
             Set.SplitRotation(c.CameraTransform(), cN.transform, false);
             Set.SplitPosition(c.CameraTransform(), transform, cN.transform);
-            transform.SetParent(cN.transform);
             
+            transform.SetParent(cN.transform);
+            Debug.Log(rotTarget);
             switch (locomotionMethod)
             {
                 case Method.Dash:
-                    cN.transform.DOMove(v.position, moveSpeed);
-                    cN.transform.DORotate(v.eulerAngles, moveSpeed);
+                    cN.transform.DOMove(posTarget, moveSpeed);
+                    cN.transform.DORotate(rotTarget, moveSpeed);
                     StartCoroutine(Uncouple(transform, moveSpeed));
                     break;
                 case Method.Blink:
-                    cN.transform.position = v.position;
-                    cN.transform.rotation = v.rotation;
+                    cN.transform.position = posTarget;
+                    cN.transform.eulerAngles = rotTarget;
                     transform.SetParent(null);
+                    active = false;
                     break;
                 default:
                     throw new ArgumentException();
@@ -313,13 +289,13 @@ namespace VR_Prototyping.Scripts
             
             visual.SetActive(false);
             lr.enabled = false;
-            active = false;
         }
 
-        private static IEnumerator Uncouple(Transform a, float time)
+        private IEnumerator Uncouple(Transform a, float time)
         {
             yield return new WaitForSeconds(time);
             a.SetParent(null);
+            active = false;
             yield return null;
         }
 
@@ -369,7 +345,7 @@ namespace VR_Prototyping.Scripts
             var t = target.transform;
             var position = t.position;
             var up = t.up;
-            hitPoint.transform.position = Physics.Raycast(position, -up, out var hit) ? hit.point : current.position;
+            hitPoint.transform.position = Vector3.Lerp(hitPoint.transform.position, Physics.Raycast(position, -up, out var hit) ? hit.point : current.position, .25f);
             hitPoint.transform.up = Physics.Raycast(position, -up, out var h) ? h.normal : current.transform.up;
         }
     }

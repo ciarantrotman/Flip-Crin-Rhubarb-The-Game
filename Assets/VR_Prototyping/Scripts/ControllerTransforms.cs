@@ -87,7 +87,6 @@ namespace VR_Prototyping.Scripts
         {
             return joystickDirection.GetAxis(SteamVR_Input_Sources.RightHand);
         }
-
         
         public Vector3 LeftForwardVector()
         {
