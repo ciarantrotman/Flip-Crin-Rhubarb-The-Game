@@ -130,12 +130,12 @@ namespace VR_Prototyping.Scripts
 		{
 			if (c.lFocusObject != null)
 			{
-				ObjectMethods.FocusObjectFollow(c.lFocusObject.transform, c.Controller.LeftControllerTransform(), tl.transform, tSl.transform, oOl.transform, cOl.transform, oPl.transform, c.Controller.LeftGrab());
+				Check.FocusObjectFollow(c.lFocusObject.transform, c.Controller.LeftControllerTransform(), tl.transform, tSl.transform, oOl.transform, cOl.transform, oPl.transform, c.Controller.LeftGrab());
 			}
 
 			if (c.rFocusObject != null)
 			{
-				ObjectMethods.FocusObjectFollow(c.rFocusObject.transform, c.Controller.RightControllerTransform(), tr.transform, tSr.transform, oOr.transform, cOr.transform, oPr.transform, c.Controller.RightGrab());
+				Check.FocusObjectFollow(c.rFocusObject.transform, c.Controller.RightControllerTransform(), tr.transform, tSr.transform, oOr.transform, cOr.transform, oPr.transform, c.Controller.RightGrab());
 			}
 		}
 		public void OnStart(Transform con)
@@ -143,14 +143,14 @@ namespace VR_Prototyping.Scripts
 			switch (con == c.Controller.LeftControllerTransform())
 			{
 				case true:
-					ObjectMethods.GrabStart(cFl, cPl, tl, cOl, con);
+					Check.GrabStart(cFl, cPl, tl, cOl, con);
 					Set.Transforms(tl.transform, c.lFocusObject.transform);
 					Set.Transforms(tSl.transform, tl.transform);
 					Set.Position(oPl.transform, c.lFocusObject.transform);
 					Set.Position(oOl.transform, c.lFocusObject.transform);
 					break;
 				case false:
-					ObjectMethods.GrabStart(cFr, cPr, tr, cOr, con);
+					Check.GrabStart(cFr, cPr, tr, cOr, con);
 					Set.Transforms(tr.transform, c.rFocusObject.transform);
 					Set.Transforms(tSr.transform, tr.transform);
 					Set.Position(oPr.transform, c.rFocusObject.transform);

@@ -103,16 +103,16 @@ namespace VR_Prototyping.Scripts
 			switch (selectionType)
 			{
 				case SelectionType.Fuzzy:
-					lFocusObject = ObjectMethods.FuzzyFindFocusObject(lHandList, lFocusObject, lTarget, lDefault, Controller.LeftGrab());
-					rFocusObject = ObjectMethods.FuzzyFindFocusObject(rHandList, rFocusObject, rTarget, rDefault, Controller.RightGrab());
+					lFocusObject = Check.FuzzyFindFocusObject(lHandList, lFocusObject, lTarget, lDefault, Controller.LeftGrab());
+					rFocusObject = Check.FuzzyFindFocusObject(rHandList, rFocusObject, rTarget, rDefault, Controller.RightGrab());
 					break;
 				case SelectionType.RayCast:
-					lFocusObject = ObjectMethods.RayCastFindFocusObject(lHandList, lFocusObject, lTarget, lDefault, Controller.LeftControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.LeftGrab());
-					rFocusObject = ObjectMethods.RayCastFindFocusObject(rHandList, rFocusObject, rTarget, rDefault, Controller.RightControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.RightGrab());
+					lFocusObject = Check.RayCastFindFocusObject(lHandList, lFocusObject, lTarget, lDefault, Controller.LeftControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.LeftGrab());
+					rFocusObject = Check.RayCastFindFocusObject(rHandList, rFocusObject, rTarget, rDefault, Controller.RightControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.RightGrab());
 					break;
 				case SelectionType.Fusion:
-					lFocusObject = ObjectMethods.FusionFindFocusObject(lHandList, lFocusObject, lTarget, lDefault, Controller.LeftControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.LeftGrab());
-					rFocusObject = ObjectMethods.FusionFindFocusObject(rHandList, rFocusObject, rTarget, rDefault, Controller.RightControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.RightGrab());
+					lFocusObject = Check.FusionFindFocusObject(lHandList, lFocusObject, lTarget, lDefault, Controller.LeftControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.LeftGrab());
+					rFocusObject = Check.FusionFindFocusObject(rHandList, rFocusObject, rTarget, rDefault, Controller.RightControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.RightGrab());
 					break;
 				default:
 					lFocusObject = null;
@@ -120,16 +120,16 @@ namespace VR_Prototyping.Scripts
 					break;
 			}
 			
-			lSelectableObject = ObjectMethods.FindSelectableObject(lFocusObject, lSelectableObject, Controller.LeftGrab());
-			rSelectableObject = ObjectMethods.FindSelectableObject(rFocusObject, rSelectableObject, Controller.RightGrab());
+			lSelectableObject = Check.FindSelectableObject(lFocusObject, lSelectableObject, Controller.LeftGrab());
+			rSelectableObject = Check.FindSelectableObject(rFocusObject, rSelectableObject, Controller.RightGrab());
 			
-			ObjectMethods.DrawLineRenderer(lLr, lFocusObject, lMidPoint, Controller.LeftControllerTransform(), lTarget, lineRenderQuality, Controller.LeftGrab());
-			ObjectMethods.DrawLineRenderer(rLr, rFocusObject, rMidPoint, Controller.RightControllerTransform() ,rTarget, lineRenderQuality, Controller.RightGrab());
+			Check.DrawLineRenderer(lLr, lFocusObject, lMidPoint, Controller.LeftControllerTransform(), lTarget, lineRenderQuality, Controller.LeftGrab());
+			Check.DrawLineRenderer(rLr, rFocusObject, rMidPoint, Controller.RightControllerTransform() ,rTarget, lineRenderQuality, Controller.RightGrab());
 		}
 		private void FixedUpdate()
 		{
-			ObjectMethods.Manipulation(lFocusObject, lSelectableObject, Controller.LeftGrab(), lGrabPrevious, Controller.LeftControllerTransform(), lMidPoint.transform, lTarget.transform);
-			ObjectMethods.Manipulation(rFocusObject, rSelectableObject, Controller.RightGrab(), rGrabPrevious, Controller.RightControllerTransform(), rMidPoint.transform, rTarget.transform);
+			Check.Manipulation(lFocusObject, lSelectableObject, Controller.LeftGrab(), lGrabPrevious, Controller.LeftControllerTransform(), lMidPoint.transform, lTarget.transform);
+			Check.Manipulation(rFocusObject, rSelectableObject, Controller.RightGrab(), rGrabPrevious, Controller.RightControllerTransform(), rMidPoint.transform, rTarget.transform);
 			
 			lGrabPrevious = Controller.LeftGrab();
 			rGrabPrevious = Controller.RightGrab();
@@ -137,11 +137,11 @@ namespace VR_Prototyping.Scripts
 
 		private void LateUpdate()
 		{
-			ObjectMethods.Selection(lFocusObject, lSelectableObject, Controller.LeftSelect(), lSelectPrevious);
-			ObjectMethods.Selection(rFocusObject, rSelectableObject, Controller.RightSelect(), rSelectPrevious);
+			Check.Selection(lFocusObject, lSelectableObject, Controller.LeftSelect(), lSelectPrevious);
+			Check.Selection(rFocusObject, rSelectableObject, Controller.RightSelect(), rSelectPrevious);
 			
-			ObjectMethods.Hover(lSelectableObject, pLSelectableObject);
-			ObjectMethods.Hover(rSelectableObject, pRSelectableObject);
+			Check.Hover(lSelectableObject, pLSelectableObject);
+			Check.Hover(rSelectableObject, pRSelectableObject);
 		
 			lSelectPrevious = Controller.LeftSelect();
 			rSelectPrevious = Controller.RightSelect();

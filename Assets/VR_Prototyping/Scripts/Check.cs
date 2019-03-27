@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace VR_Prototyping.Scripts
 {
-    public static class ObjectMethods
+    public static class Check
     {
         public static void Manipulation(Object focusObject, SelectableObject selectableObject, bool grip, bool pGrip, Transform con, Transform mid, Transform end)
         {
@@ -56,12 +56,12 @@ namespace VR_Prototyping.Scripts
             }
         }
 
-        public static void Locomotion(Locomotion t, bool current, bool previous, GameObject visual)
+        public static void Locomotion(Locomotion t, bool current, bool previous, GameObject visual, LineRenderer lr)
         {
             if (t != null)
             if (current && !previous)
             {
-                t.LocomotionStart(visual);
+                t.LocomotionStart(visual, lr);
             }
             if (current && previous)
             {
@@ -69,7 +69,7 @@ namespace VR_Prototyping.Scripts
             }
             if (!current && previous)
             {
-                t.LocomotionEnd(visual);
+                t.LocomotionEnd(visual, lr);
             }
         }
         
