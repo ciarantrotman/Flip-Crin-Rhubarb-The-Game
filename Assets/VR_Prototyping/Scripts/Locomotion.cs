@@ -122,7 +122,7 @@ namespace VR_Prototyping.Scripts
             rCn.transform.SetParent(rCf.transform);
             rMp.transform.SetParent(rCp.transform);
             rTs.transform.SetParent(rCn.transform);
-            //rHp.transform.SetParent(rTs.transform);
+            rHp.transform.SetParent(transform);
             rRt.transform.SetParent(rHp.transform);
             
             lCf.transform.SetParent(p);
@@ -130,7 +130,7 @@ namespace VR_Prototyping.Scripts
             lCn.transform.SetParent(lCf.transform);
             lMp.transform.SetParent(lCp.transform);
             lTs.transform.SetParent(lCn.transform);
-            //lHp.transform.SetParent(lTs.transform);
+            lHp.transform.SetParent(transform);
             lRt.transform.SetParent(lHp.transform);
             
             rLr = rCp.AddComponent<LineRenderer>();
@@ -149,7 +149,7 @@ namespace VR_Prototyping.Scripts
             TargetLocation(lTs, lHp, transform);
 
             Set.LocalDepth(rMp.transform, Set.Midpoint(rCp.transform, rTs.transform), false, 0f);
-            Set.LocalDepth(lMp.transform, Set.Midpoint(rCp.transform, rTs.transform), false, 0f);
+            Set.LocalDepth(lMp.transform, Set.Midpoint(lCp.transform, lTs.transform), false, 0f);
 
             DrawLineRender(rLr, c.RightControllerTransform(), rMp.transform, rHp.transform, lineRenderQuality);            
             DrawLineRender(lLr, c.LeftControllerTransform(), lMp.transform, lHp.transform, lineRenderQuality);
@@ -203,6 +203,7 @@ namespace VR_Prototyping.Scripts
         private void GestureDetection(Vector2 current, Vector2 previous, float rot, float speed, GameObject visual, LineRenderer lr, bool disabled)
         {
             if (disabled) return;
+            
             var trigger = Mathf.Abs(current.x) > Trigger || Mathf.Abs(current.y) > Trigger;
             var tolerance = Mathf.Abs(previous.x) - 0 <= Tolerance && Mathf.Abs(previous.y) - 0 <= Tolerance;
             var triggerEnd = Mathf.Abs(current.x) - 0 <= Tolerance && Mathf.Abs(current.y) - 0 <= Tolerance;
@@ -226,7 +227,7 @@ namespace VR_Prototyping.Scripts
                 }
                 else if (current.y > Tolerance)
                 {
-                    LocomotionStart(rVo, rLr);
+                    LocomotionStart(visual, lr);
                 }
             }
             else if (triggerEnd && toleranceEnd && active)

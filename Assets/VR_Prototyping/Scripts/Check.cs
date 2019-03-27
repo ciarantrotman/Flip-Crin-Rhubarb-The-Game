@@ -80,13 +80,11 @@ namespace VR_Prototyping.Scripts
             {
                 target.transform.SetParent(hit.transform);
                 Set.VectorLerpPosition(target.transform, hit.point, .15f);
-                //Debug.DrawRay(position, forward * hit.distance, Color.green);
                 return hit.transform.gameObject;
             }
 
             target.transform.SetParent(null);
             Set.TransformLerpPosition(target.transform, inactive.transform, .1f);
-            //Debug.DrawRay(position, forward * distance, Color.red);
             return null;
         }
         
@@ -109,7 +107,6 @@ namespace VR_Prototyping.Scripts
             {
                 target.transform.SetParent(hit.transform);
                 Set.VectorLerpPosition(target.transform, hit.point, .25f);
-                //Debug.DrawRay(position, forward * hit.distance, Color.green);
                 return hit.transform.gameObject;
             }
 
@@ -117,13 +114,11 @@ namespace VR_Prototyping.Scripts
             {
                 target.transform.SetParent(objects[0].gameObject.transform);
                 Set.TransformLerpPosition(target.transform, objects[0].gameObject.transform, .25f);
-                //Debug.DrawRay(position, forward * distance, Color.red);
                 return objects[0].gameObject;
             }
             
             target.transform.SetParent(null);
             Set.TransformLerpPosition(target.transform, inactive.transform, .2f);
-            //Debug.DrawRay(position, forward * distance, Color.red);
             return null;
         }
 

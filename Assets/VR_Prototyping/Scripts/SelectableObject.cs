@@ -249,8 +249,18 @@ namespace VR_Prototyping.Scripts
 			Set.RigidBody(rb, moveForce, latency,false, gravity);
 			f.OnStart(con);
 		}
+
+		private int loop;
+		
+		public float scaler;
+    
+		private Quaternion _aPreviousRotation;
+		private Quaternion _applyRot;
+		private float _scalar = 1;
+		
 		public void GrabStay(Transform con, Transform mid, Transform end)
 		{
+			
 			if (!grab) return;
 			
 			f.OnStay(con, mid, end, transform, c.lineRenderQuality);
@@ -277,7 +287,19 @@ namespace VR_Prototyping.Scripts
 					if (DualGrab(c.Controller.LeftGrab(), c.Controller.RightGrab(), c.lSelectableObject, c.rSelectableObject, this))
 					{
 						Set.AddForcePosition(rb, transform, f.mP.transform, c.Controller.debugActive);
-						Set.AddForceRotation(rb, transform, f.mP.transform, 100f);
+						/*if (loop == 0)
+						{
+							_aPreviousRotation = f.mP.transform.rotation;
+							Debug.Log(_aPreviousRotation);
+							loop++;
+						}	
+						else
+						{
+							Quaternion deltaRotation = _aPreviousRotation * Quaternion.Inverse(f.mP.transform.rotation);
+							transform.rotation = Quaternion.Inverse(Quaternion.LerpUnclamped(Quaternion.identity, deltaRotation, scaler)) * transform.rotation;
+							_aPreviousRotation = f.mP.transform.rotation;
+							Debug.Log(deltaRotation);
+						}*/
 						break;
 					}
 					if (c.Controller.RightGrab() && c.rSelectableObject == this)
@@ -294,6 +316,7 @@ namespace VR_Prototyping.Scripts
 					throw new ArgumentException();
 			}
 		}
+		 
 		private static bool DualGrab(bool l, bool r, Object lS, Object rS, Object s)
 		{
 			return l && r && lS == s && rS == s;
