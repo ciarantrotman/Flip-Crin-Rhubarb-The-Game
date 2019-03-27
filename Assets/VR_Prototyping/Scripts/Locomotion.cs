@@ -174,16 +174,17 @@ namespace VR_Prototyping.Scripts
 
         private void LateUpdate()
         {
-            Check.Locomotion(this, c.RightJoystickPress(), pTouchR, rVo, rLr);
-            Check.Locomotion(this, c.LeftJoystickPress(), pTouchL, lVo, lLr);
-            pTouchR = c.RightJoystickPress();
-            pTouchL = c.LeftJoystickPress();
+            //Check.Locomotion(this, c.RightJoystickPress(), pTouchR, rVo, rLr);
+            //Check.Locomotion(this, c.LeftJoystickPress(), pTouchL, lVo, lLr);
             
             JoystickTracking(rJoystickValues, c.RightJoystick());
             JoystickTracking(lJoystickValues, c.LeftJoystick());
             
-            GestureDetection(c.RightJoystick(), rJoystickValues[0], angle, rotateSpeed, rVo, rLr, disableRightHand);
-            GestureDetection(c.LeftJoystick(), lJoystickValues[0], angle, rotateSpeed, lVo, lLr, disableLeftHand);
+            GestureDetection(c.RightJoystick(), rJoystickValues[0], angle, rotateSpeed, rVo, rLr, c.RightJoystickPress(), pTouchR, disableRightHand);
+            GestureDetection(c.LeftJoystick(), lJoystickValues[0], angle, rotateSpeed, lVo, lLr, c.LeftJoystickPress(), pTouchL, disableLeftHand);
+            
+            pTouchR = c.RightJoystickPress();
+            pTouchL = c.LeftJoystickPress();
         }
 
         private static void JoystickTracking(List<Vector2> list, Vector2 current)
@@ -200,7 +201,7 @@ namespace VR_Prototyping.Scripts
             }
         }
 
-        private void GestureDetection(Vector2 current, Vector2 previous, float rot, float speed, GameObject visual, LineRenderer lr, bool disabled)
+        private void GestureDetection(Vector2 current, Vector2 previous, float rot, float speed, GameObject visual, LineRenderer lr, bool currentTouch, bool previousTouch, bool disabled)
         {
             if (disabled) return;
             
@@ -211,7 +212,7 @@ namespace VR_Prototyping.Scripts
 
             var latch = trigger && toleranceEnd;
             
-            if (trigger && tolerance && !active && !latch)
+            if (trigger && tolerance && !active && !latch || (currentTouch && !previousTouch && !active))
             {
                 if (current.x > Tolerance)
                 {
@@ -230,7 +231,7 @@ namespace VR_Prototyping.Scripts
                     LocomotionStart(visual, lr);
                 }
             }
-            else if (triggerEnd && toleranceEnd && active)
+            else if (triggerEnd && toleranceEnd && active || (!currentTouch && previousTouch && active))
             {
                 LocomotionEnd(visual, visual.transform.position, visual.transform.eulerAngles, lr);
             }
