@@ -9,6 +9,7 @@ namespace VR_Prototyping.Scripts
             lr.material = m;
             lr.startWidth = w;
             lr.endWidth = w;
+            lr.numCapVertices = 10;
             lr.useWorldSpace = true;
             lr.enabled = e;
         }

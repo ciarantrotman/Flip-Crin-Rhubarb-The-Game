@@ -17,7 +17,6 @@ namespace VR_Prototyping.Scripts
 		#region Inspector and Variables
 		private ObjectSelection c;
 		private Manipulation f;
-		private Rotation r;
 		
 		private Vector3 defaultPosition;
 		private Vector3 defaultLocalPosition;
@@ -28,11 +27,14 @@ namespace VR_Prototyping.Scripts
 		private RotationLock rotLock;
 		private float gazeAngle;
 		private float manualRef;
+		
 		private Rigidbody rb;
 		public float AngleL { get; private set; }
 		public float AngleR { get; private set; }
 		public Renderer Renderer { get; private set; }
 
+		public Transform ResetState { get; private set; }
+		
 		public enum RotationLock
 		{
 			FreeRotation
@@ -114,12 +116,12 @@ namespace VR_Prototyping.Scripts
 			if(!button) return;
 			ToggleState(startsActive);
 			active = startsActive;
+			ResetState = transform;
 		}
 		private void AssignComponents()
 		{
 			c = player.GetComponent<ObjectSelection>();
 			f = player.GetComponent<Manipulation>();
-			r = player.GetComponent<Rotation>();
 			Renderer = GetComponent<Renderer>();
 		}
 		private void SetupRigidBody()
