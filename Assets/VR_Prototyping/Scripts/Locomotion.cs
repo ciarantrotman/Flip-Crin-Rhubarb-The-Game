@@ -42,12 +42,12 @@ namespace VR_Prototyping.Scripts
         private const float MaxAngle = 60f;
         private const float MinAngle = 0f;
         
-        private const float Trigger = .65f;
+        private const float Trigger = .9f;
         private const float Sensitivity = 10f;
         private const float Tolerance = .1f;
         
-        private List<Vector2> rJoystickValues = new List<Vector2>();
-        private List<Vector2> lJoystickValues = new List<Vector2>();
+        private readonly List<Vector2> rJoystickValues = new List<Vector2>();
+        private readonly List<Vector2> lJoystickValues = new List<Vector2>();
         
         private bool pTouchR;
         private bool pTouchL;
@@ -158,30 +158,26 @@ namespace VR_Prototyping.Scripts
             Target(lVo, lHp, lCn.transform, c.LeftJoystick(), lRt);
         }
 
-        private static void Target(GameObject visual, GameObject parent, Transform normal, Vector2 pos, GameObject target)//, Vector3 rot)
+        private static void Target(GameObject visual, GameObject parent, Transform normal, Vector2 pos, GameObject target)
         {
-            visual.transform.LookAt(RotationTarget(pos, target));//, rot));
+            visual.transform.LookAt(RotationTarget(pos, target));
             
             parent.transform.forward = normal.forward;
         }
         
-        private static Transform RotationTarget(Vector2 pos, GameObject target)//, Vector3 rot)
+        private static Transform RotationTarget(Vector2 pos, GameObject target)
         {
-            //target.transform.localPosition = Math.Abs(pos.x) > Trigger || Math.Abs(pos.y) > Trigger ? Vector3.Lerp(target.transform.localPosition, new Vector3(pos.x, 0, pos.y), .1f) : Vector3.forward;
             target.transform.localPosition = Vector3.Lerp(target.transform.localPosition, new Vector3(pos.x, 0, pos.y), .1f);
             return target.transform;
         }
 
         private void LateUpdate()
         {
-            //Check.Locomotion(this, c.RightJoystickPress(), pTouchR, rVo, rLr);
-            //Check.Locomotion(this, c.LeftJoystickPress(), pTouchL, lVo, lLr);
-            
             JoystickTracking(rJoystickValues, c.RightJoystick());
             JoystickTracking(lJoystickValues, c.LeftJoystick());
             
-            GestureDetection(c.RightJoystick(), rJoystickValues[0], angle, rotateSpeed, rVo, rLr, c.RightJoystickPress(), pTouchR, disableRightHand);
-            GestureDetection(c.LeftJoystick(), lJoystickValues[0], angle, rotateSpeed, lVo, lLr, c.LeftJoystickPress(), pTouchL, disableLeftHand);
+            GestureDetection(c.RightJoystick(), rJoystickValues[0], angle, rotateSpeed, Trigger, Tolerance, rVo, rLr, c.RightJoystickPress(), pTouchR, disableRightHand, active);
+            GestureDetection(c.LeftJoystick(), lJoystickValues[0], angle, rotateSpeed, Trigger, Tolerance, lVo, lLr, c.LeftJoystickPress(), pTouchL, disableLeftHand, active);
             
             pTouchR = c.RightJoystickPress();
             pTouchL = c.LeftJoystickPress();
@@ -193,7 +189,7 @@ namespace VR_Prototyping.Scripts
             CullList(list);
         }
         
-        private static void CullList(List<Vector2> list)
+        private static void CullList(IList list)
         {
             if (list.Count > Sensitivity)
             {
@@ -201,37 +197,45 @@ namespace VR_Prototyping.Scripts
             }
         }
 
-        private void GestureDetection(Vector2 current, Vector2 previous, float rot, float speed, GameObject visual, LineRenderer lr, bool currentTouch, bool previousTouch, bool disabled)
+        private void GestureDetection(Vector2 current, Vector2 previous, float rot, float speed, float triggerValue, float toleranceValue, GameObject visual, LineRenderer lr, bool currentTouch, bool previousTouch, bool disabled, bool locomotionActive)
         {
             if (disabled) return;
             
-            var trigger = Mathf.Abs(current.x) > Trigger || Mathf.Abs(current.y) > Trigger;
-            var tolerance = Mathf.Abs(previous.x) - 0 <= Tolerance && Mathf.Abs(previous.y) - 0 <= Tolerance;
-            var triggerEnd = Mathf.Abs(current.x) - 0 <= Tolerance && Mathf.Abs(current.y) - 0 <= Tolerance;
-            var toleranceEnd = Mathf.Abs(previous.x) > Trigger || Mathf.Abs(previous.y) > Trigger;
+            var trigger = Mathf.Abs(current.x) > triggerValue || Mathf.Abs(current.y) > triggerValue;
+            var tolerance = Mathf.Abs(previous.x) - 0 <= toleranceValue && Mathf.Abs(previous.y) - 0 <= toleranceValue;
+            var triggerEnd = Mathf.Abs(current.x) - 0 <= toleranceValue && Mathf.Abs(current.y) - 0 <= toleranceValue;
+            var toleranceEnd = Mathf.Abs(previous.x) > triggerValue || Mathf.Abs(previous.y) > triggerValue;
 
             var latch = trigger && toleranceEnd;
             
-            if (trigger && tolerance && !active && !latch || (currentTouch && !previousTouch && !active))
+            if ((trigger && tolerance && !locomotionActive && !latch) || (currentTouch && !previousTouch && !locomotionActive))
             {
-                if (current.x > Tolerance)
+                if (current.x > triggerValue)
                 {
+                    Debug.Log(current.x + "RIGHT");
                     RotateUser(rot, speed);
+                    
                 }
-                else if (current.x < -Tolerance)
+                else if (current.x < -triggerValue)
                 {
+                    Debug.Log(current.x + "LEFT");
                     RotateUser(-rot, speed);
                 }
-                else if (current.y < -Tolerance)
+                else if (current.y < -triggerValue)
                 {
+                    Debug.Log(current.x + "BACK");
                     RotateUser(180f, speed);
                 }
-                else if (current.y > Tolerance)
-                {
-                    LocomotionStart(visual, lr);
-                }
+                //else// if ((current.y > Tolerance) || (currentTouch && !previousTouch)
+                //{
+                //    LocomotionStart(visual, lr);
+                //}
             }
-            else if (triggerEnd && toleranceEnd && active || (!currentTouch && previousTouch && active))
+            else if ((currentTouch && previousTouch && !locomotionActive) || (trigger && toleranceEnd && !locomotionActive))
+            {
+                LocomotionStart(visual, lr);
+            }
+            else if ((triggerEnd && toleranceEnd && locomotionActive) || (!currentTouch && previousTouch && locomotionActive))
             {
                 LocomotionEnd(visual, visual.transform.position, visual.transform.eulerAngles, lr);
             }

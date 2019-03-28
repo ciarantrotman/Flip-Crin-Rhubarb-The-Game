@@ -42,7 +42,6 @@ namespace VR_Prototyping.Scripts
 			OnButtonDown,
 			OnButtonUp				
 		}
-		
 	
 		[BoxGroup("Script Setup")] [SerializeField] [Required] private GameObject player;
 		[BoxGroup("Script Setup")] [HideIf("button")] [SerializeField] private bool grab;
@@ -136,7 +135,7 @@ namespace VR_Prototyping.Scripts
 				rotationLock = RotationLock.FreeRotation;
 			}
 		}
-		private static void ToggleList(GameObject g, List<GameObject> l)
+		private static void ToggleList(GameObject g, ICollection<GameObject> l)
 		{
 			if (l.Contains(g))
 			{
@@ -172,7 +171,7 @@ namespace VR_Prototyping.Scripts
 			AngleL = Vector3.Angle(position - c.Controller.LeftControllerTransform().position, c.Controller.LeftForwardVector());
 			AngleR = Vector3.Angle(position - c.Controller.RightControllerTransform().position, c.Controller.RightForwardVector());
 		}
-		private static void CheckGaze(GameObject o, float a, float c, List<GameObject> g, List<GameObject> l, List<GameObject> r, List<GameObject> global)
+		private static void CheckGaze(GameObject o, float a, float c, ICollection<GameObject> g, ICollection<GameObject> l, ICollection<GameObject> r, ICollection<GameObject> global)
 		{
 			if (!global.Contains(o))
 			{
@@ -193,7 +192,7 @@ namespace VR_Prototyping.Scripts
 				r.Remove(o);
 			}
 		}
-		private static bool CheckHand(GameObject g, List<GameObject> gaze, float m, float c, bool b, bool button)
+		private static bool CheckHand(GameObject g, ICollection<GameObject> gaze, float m, float c, bool b, bool button)
 		{
 			if (b && !button) return false;
 			if (!gaze.Contains(g)) return false;
@@ -206,7 +205,7 @@ namespace VR_Prototyping.Scripts
 			return Vector3.Distance(self.position, user.position) <= range;
 		}
 
-		private static void ManageList(GameObject g, List<GameObject> l, bool b, bool d, bool r)
+		private static void ManageList(GameObject g, ICollection<GameObject> l, bool b, bool d, bool r)
 		{
 			if (d || !r) return;
 			
@@ -252,8 +251,8 @@ namespace VR_Prototyping.Scripts
 
 		private int loop;
 		
-		public float scaler;
-    
+		// BUG: Applying rotation.
+		
 		private Quaternion _aPreviousRotation;
 		private Quaternion _applyRot;
 		private float _scalar = 1;
