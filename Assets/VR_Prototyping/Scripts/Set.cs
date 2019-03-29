@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 
 namespace VR_Prototyping.Scripts
@@ -9,6 +12,29 @@ namespace VR_Prototyping.Scripts
         private static readonly int LeftHand = Shader.PropertyToID("_LeftHand");
         private static readonly int RightHand = Shader.PropertyToID("_RightHand");
 
+        public static void Tag(string tag)
+        {
+            var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+            var tagsProp = tagManager.FindProperty("tags");
+
+            var found = false;
+            for (var i = 0; i < tagsProp.arraySize; i++)
+            {
+                var t = tagsProp.GetArrayElementAtIndex(i);
+                if (!t.stringValue.Equals(tag)) continue;
+                found = true; break;
+            }
+
+            Debug.LogWarning(tag + " is already a tag!");
+            
+            if (found) return;
+            
+            Debug.Log(tag + " added to tags!");
+            tagsProp.InsertArrayElementAtIndex(0);
+            var n = tagsProp.GetArrayElementAtIndex(0);
+            n.stringValue = tag;
+        }
+        
         public static void Position(Transform a, Transform b)
         {
             if (a == null || b == null) return;
@@ -119,6 +145,20 @@ namespace VR_Prototyping.Scripts
             rb.AddForce(-x * d, ForceMode.Force);
         }
 
+        public static void AddForceFollow(Rigidbody rb, float force, Transform a, Transform b)
+        {
+            var aPos = a.position;
+            var bPos = b.position;
+            var x = bPos - aPos;
+            
+            rb.AddForce(x * force, ForceMode.Force);
+        }
+
+        public static Vector3 Velocity(List<Vector3> list)
+        {
+            //return list[0] - list[list.Count - 1];
+            return list.Aggregate(Vector3.zero, (current, pos) => current + pos) / list.Count();
+        }
         public static void RigidBody(Rigidbody rb, float force, float drag, bool stop, bool gravity)
         {
             rb.mass = force;

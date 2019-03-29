@@ -56,6 +56,27 @@ namespace VR_Prototyping.Scripts
             }
         }
 
+        public static void JoystickTracking(List<Vector2> list, Vector2 current, float sensitivity)
+        {
+            list.Add(current);
+            CullList(list, sensitivity);
+        }
+        
+        public static void PositionTracking(List<Vector3> list, Vector3 current, float sensitivity)
+        {
+            list.Add(current);
+            CullList(list, sensitivity);
+            Debug.DrawLine(list[0], list[list.Count - 1], Color.red);
+        }
+        
+        private static void CullList(IList list, float sensitivity)
+        {
+            if (list.Count > sensitivity)
+            {
+                list.RemoveAt(0);
+            }
+        }
+        
         public static void Locomotion(Locomotion t, bool current, bool previous, GameObject visual, LineRenderer lr)
         {
             if (t != null)
@@ -67,6 +88,102 @@ namespace VR_Prototyping.Scripts
             {
                 t.LocomotionEnd(visual, visual.transform.position, visual.transform.eulerAngles, lr);
             }
+        }
+        
+        public static void GestureDetection(Locomotion l, Vector2 current, Vector2 previous, float rot, float speed, float triggerValue, float toleranceValue, GameObject visual, LineRenderer lr, bool currentTouch, bool previousTouch, bool disabled, bool locomotionActive)
+        {
+            if (disabled) return;
+            
+            var trigger = Mathf.Abs(current.x) > triggerValue || Mathf.Abs(current.y) > triggerValue;
+            var tolerance = Mathf.Abs(previous.x) - 0 <= toleranceValue && Mathf.Abs(previous.y) - 0 <= toleranceValue;
+            var triggerEnd = Mathf.Abs(current.x) - 0 <= toleranceValue && Mathf.Abs(current.y) - 0 <= toleranceValue;
+            var toleranceEnd = Mathf.Abs(previous.x) > triggerValue || Mathf.Abs(previous.y) > triggerValue;
+
+            var latch = trigger && toleranceEnd;
+            
+            if ((trigger && tolerance && !locomotionActive && !latch) || (currentTouch && !previousTouch && !locomotionActive))
+            {
+                if (current.x > triggerValue)
+                {
+                    Debug.Log(current.x + " RIGHT");
+                    l.RotateUser(rot, speed);
+                    
+                }
+                else if (current.x < -triggerValue)
+                {
+                    Debug.Log(current.x + " LEFT");
+                    l.RotateUser(-rot, speed);
+                }
+                else if (current.y < -triggerValue)
+                {
+                    Debug.Log(current.x + " BACK");
+                    l.RotateUser(180f, speed);
+                }
+            }
+            else if ((currentTouch && previousTouch && !locomotionActive) || (trigger && toleranceEnd && !locomotionActive))
+            {
+                l.LocomotionStart(visual, lr);
+            }
+            else if ((triggerEnd && toleranceEnd && locomotionActive) || (!currentTouch && previousTouch && locomotionActive))
+            {
+                l.LocomotionEnd(visual, visual.transform.position, visual.transform.eulerAngles, lr);
+            }
+        }
+        
+        public static void Target(GameObject visual, GameObject parent, Transform normal, Vector2 pos, GameObject target)
+        {
+            visual.transform.LookAt(RotationTarget(pos, target));
+            
+            parent.transform.forward = normal.forward;
+        }
+        
+        private static Transform RotationTarget(Vector2 pos, GameObject target)
+        {
+            target.transform.localPosition = Vector3.Lerp(target.transform.localPosition, new Vector3(pos.x, 0, pos.y), .1f);
+            return target.transform;
+        }
+        
+        public static float ControllerAngle(GameObject follow, GameObject proxy, GameObject normal, Transform controller, Transform head, bool debug)
+        {
+            Set.Position(proxy.transform, controller);
+            Set.ForwardVector(proxy.transform, controller);
+            Set.SplitRotation(proxy.transform, normal.transform, true);
+            Set.SplitPosition(head, controller, follow.transform);
+            follow.transform.LookAt(proxy.transform);
+
+            if (!debug) return Vector3.Angle(normal.transform.forward, proxy.transform.forward);
+            
+            var normalForward = normal.transform.forward;
+            var proxyForward = proxy.transform.forward;
+            var position = proxy.transform.position;
+            
+            Debug.DrawLine(follow.transform.position, position, Color.red);
+            Debug.DrawRay(normal.transform.position, normalForward, Color.blue);
+            Debug.DrawRay(position, proxyForward, Color.blue);
+
+            return Vector3.Angle(normalForward, proxyForward);
+        }
+        
+        public static float CalculateDepth(float angle, float maxAngle, float minAngle, float max, float min, Transform proxy)
+        {
+            var a = angle;
+
+            a = a > maxAngle ? maxAngle : a;
+            a = a < minAngle ? minAngle : a;
+
+            a = proxy.eulerAngles.x < 180 ? minAngle : a;
+            
+            var proportion = Mathf.InverseLerp(maxAngle, minAngle, a);
+            return Mathf.Lerp(max, min, proportion);
+        }
+        
+        public static void TargetLocation(GameObject target, GameObject hitPoint, Transform current)
+        {
+            var t = target.transform;
+            var position = t.position;
+            var up = t.up;
+            hitPoint.transform.position = Vector3.Lerp(hitPoint.transform.position, Physics.Raycast(position, -up, out var hit) ? hit.point : current.position, .25f);
+            hitPoint.transform.up = Physics.Raycast(position, -up, out var h) ? h.normal : current.transform.up;
         }
         
         public static GameObject RayCastFindFocusObject(List<GameObject> objects, GameObject current, GameObject target, GameObject inactive, Transform controller, float distance, bool disable)

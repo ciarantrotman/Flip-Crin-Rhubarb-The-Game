@@ -22,5 +22,11 @@ namespace VR_Prototyping.Scripts
             var position = m.position;
             m.localPosition = new Vector3(position.x, position.y, position.z + offset);
         }
+
+        public static void SphereCollider(SphereCollider sc, bool trigger, float radius)
+        {
+            sc.isTrigger = trigger;
+            sc.radius = radius;
+        }
     }
 }

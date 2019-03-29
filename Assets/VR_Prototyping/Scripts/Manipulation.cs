@@ -3,6 +3,7 @@ using System.Xml.Serialization;
 using Sirenix.OdinInspector;
 using UnityEditor.U2D;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace VR_Prototyping.Scripts
@@ -18,33 +19,42 @@ namespace VR_Prototyping.Scripts
 		private GameObject fM;
 		[HideInInspector] public GameObject mP;
 		
-		private GameObject cPr;
-		private GameObject oPr;	
-		private GameObject cOr;
-		private GameObject oOr;
-		private GameObject tr;
-		private GameObject cFr;
+		[HideInInspector] public GameObject cR; // controller proxy
+		private GameObject cPr; // controller proxy
+		private GameObject oPr;	// object proxy
+		private GameObject cOr; // controller original
+		private GameObject oOr; // object original
+		private GameObject tr;  // target
+		private GameObject cFr; // follow
 		[HideInInspector] public GameObject tSr;
 
-		private GameObject cPl;
-		private GameObject oPl;	
-		private GameObject cOl;
-		private GameObject oOl;
-		private GameObject tl;
-		private GameObject cFl;
+		[HideInInspector] public GameObject cL; // controller proxy
+		private GameObject cPl; // controller proxy
+		private GameObject oPl;	// object proxy
+		private GameObject cOl; // controller original
+		private GameObject oOl; // object original
+		private GameObject tl;  // target
+		private GameObject cFl; // follow
 		[HideInInspector] public GameObject tSl;
 		
 		private float initialDistance;
 		private float m;
 		private float z;
-				
+
+		[HideInInspector] public SphereCollider sCl;
+		[HideInInspector] public SphereCollider sCr;
+
+		public const string RTag = "Controller/Right";
+		public const string LTag = "Controller/Left";
+		
 		public enum ManipulationType
 		{
 			Physics,
 			Lerp		
 		}
 		[TabGroup("Grab Settings")] public ManipulationType manipulationType;
-		[TabGroup("Grab Settings")] [SerializeField] private bool objectMovesWithYouTeleport;
+		[TabGroup("Grab Settings")] public bool directGrab;
+		[TabGroup("Grab Settings")] [ShowIf("directGrab")] [Indent] [Range(0f, 1f)] [SerializeField] private float directGrabDistance = .5f;
 		[TabGroup("Grab Settings")] public bool disableLeftGrab;
 		[TabGroup("Grab Settings")] public bool disableRightGrab;
 		[TabGroup("Rotation Settings")] public bool enableRotation;
@@ -57,71 +67,67 @@ namespace VR_Prototyping.Scripts
 		#endregion
 		private void Start () 
 		{
-			SetupGameObjects();
-			
 			c = GetComponent<ObjectSelection>();
 			player = c.gameObject;
-			
-			if (objectMovesWithYouTeleport)
-			{
-				fM.transform.parent = player.transform;
-			}	
+			SetupGameObjects();
 		}
 
 		private void SetupGameObjects()
 		{
 			fM = new GameObject("Manipulation/Manipulation");
-			
 			mP = new GameObject("Manipulation/MidPoint");
-			mP.transform.SetParent(fM.transform);
-			
 			tr = new GameObject("Manipulation/Target/Right");
-			tr.transform.SetParent(fM.transform);
-			
 			cFr = new GameObject("Manipulation/Controller/Follow/Right");
-			cFr.transform.SetParent(fM.transform);
-			
 			cOr = new GameObject("Manipulation/Controller/Original/Right");
-			cOr.transform.SetParent(cFr.transform);
-			
 			cPr = new GameObject("Manipulation/Controller/Proxy/Right");
-			cPr.transform.SetParent(cFr.transform);
-			
 			tSr = new GameObject("Manipulation/Target/Scaled/Right");
-			tSr.transform.SetParent(cPr.transform);
-			
 			oPr = new GameObject("Manipulation/Object/Proxy/Right");
-			oPr.transform.SetParent(cPr.transform);
-			
 			oOr = new GameObject("Manipulation/Object/Original/Right");
+			
+			fM.transform.parent = player.transform;
+			
+			mP.transform.SetParent(fM.transform);
+			tr.transform.SetParent(fM.transform);
+			cFr.transform.SetParent(fM.transform);
+			cOr.transform.SetParent(cFr.transform);
+			cPr.transform.SetParent(cFr.transform);
+			tSr.transform.SetParent(cPr.transform);
+			oPr.transform.SetParent(cPr.transform);
 			oOr.transform.SetParent(cPr.transform);
 			
 			tl = new GameObject("Manipulation/Target/Left");
-			tl.transform.SetParent(fM.transform);
-			
 			cFl = new GameObject("Manipulation/Controller/Follow/Left");
-			cFl.transform.SetParent(fM.transform);
-			
 			cOl = new GameObject("Manipulation/Controller/Original/Left");
-			cOl.transform.SetParent(cFl.transform);
-			
 			cPl = new GameObject("Manipulation/Controller/Proxy/Left");
-			cPl.transform.SetParent(cFl.transform);
-			
 			tSl = new GameObject("Manipulation/Target/Scaled/Left");
-			tSl.transform.SetParent(cPl.transform);
-			
 			oPl = new GameObject("Manipulation/Object/Proxy/Left");
-			oPl.transform.SetParent(cPl.transform);
-			
 			oOl = new GameObject("Manipulation/Object/Original/Left");
+			
+			
+			tl.transform.SetParent(fM.transform);
+			cFl.transform.SetParent(fM.transform);
+			cOl.transform.SetParent(cFl.transform);
+			cPl.transform.SetParent(cFl.transform);
+			tSl.transform.SetParent(cPl.transform);
+			oPl.transform.SetParent(cPl.transform);
 			oOl.transform.SetParent(cPl.transform);
+			
+			cR = new GameObject(RTag);
+			cL = new GameObject(LTag);
+			
+			if(!directGrab) return;
+			sCr = cR.AddComponent<SphereCollider>();
+			sCl = cL.AddComponent<SphereCollider>();
+			Setup.SphereCollider(sCr, true, directGrabDistance);
+			Setup.SphereCollider(sCl, true, directGrabDistance);
 		}
 		private void Update()
 		{				
 			Set.SplitPosition(c.Controller.CameraTransform(), c.Controller.LeftControllerTransform(), cFl.transform);
 			Set.SplitPosition(c.Controller.CameraTransform(), c.Controller.RightControllerTransform(), cFr.transform);
 			Set.MidpointPosition(mP.transform, tSl.transform, tSr.transform, true);
+			Set.Transforms(cR.transform, c.Controller.RightControllerTransform());
+			Set.Transforms(cL.transform, c.Controller.LeftControllerTransform());
 			
 			FollowFocusObjects();
 		}

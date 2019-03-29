@@ -7,7 +7,7 @@ namespace VR_Prototyping.Scripts
     [RequireComponent(typeof(ObjectSelection))]
     [RequireComponent(typeof(Manipulation))]
     public class Rotation : MonoBehaviour
-    {
+    {/*
         private ObjectSelection c;
         private Manipulation m;
         private LineRenderer lr;
@@ -131,7 +131,7 @@ namespace VR_Prototyping.Scripts
             }
         */}
     }
-}
+
 
 /*
  * using System.Collections;

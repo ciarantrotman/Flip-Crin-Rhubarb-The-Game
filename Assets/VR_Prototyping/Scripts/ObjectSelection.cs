@@ -13,8 +13,6 @@ namespace VR_Prototyping.Scripts
 	{
 		#region 01 Inspector and Variables
 		public ControllerTransforms Controller { get; private set; }
-		public bool RStay { get; set; }
-		public bool LStay { get; set; }
 		private enum SelectionType
 		{
 			Fusion,
@@ -35,8 +33,9 @@ namespace VR_Prototyping.Scripts
 		private GameObject rDefault;
 		private SelectableObject pLSelectableObject;
 		private SelectableObject pRSelectableObject;
-		
-		[HideInInspector] public GameObject grabObject;
+
+		[HideInInspector] public bool rTouch;
+		[HideInInspector] public bool lTouch;
 		[HideInInspector] public GameObject lMidPoint;
 		[HideInInspector] public GameObject rMidPoint;
 		[HideInInspector] public GameObject lFocusObject;
@@ -103,16 +102,16 @@ namespace VR_Prototyping.Scripts
 			switch (selectionType)
 			{
 				case SelectionType.Fuzzy:
-					lFocusObject = Check.FuzzyFindFocusObject(lHandList, lFocusObject, lTarget, lDefault, Controller.LeftGrab());
-					rFocusObject = Check.FuzzyFindFocusObject(rHandList, rFocusObject, rTarget, rDefault, Controller.RightGrab());
+					lFocusObject = Check.FuzzyFindFocusObject(lHandList, lFocusObject, lTarget, lDefault, Controller.LeftGrab() || lTouch);
+					rFocusObject = Check.FuzzyFindFocusObject(rHandList, rFocusObject, rTarget, rDefault, Controller.RightGrab() || rTouch);
 					break;
 				case SelectionType.RayCast:
-					lFocusObject = Check.RayCastFindFocusObject(lHandList, lFocusObject, lTarget, lDefault, Controller.LeftControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.LeftGrab());
-					rFocusObject = Check.RayCastFindFocusObject(rHandList, rFocusObject, rTarget, rDefault, Controller.RightControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.RightGrab());
+					lFocusObject = Check.RayCastFindFocusObject(lHandList, lFocusObject, lTarget, lDefault, Controller.LeftControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.LeftGrab() || lTouch);
+					rFocusObject = Check.RayCastFindFocusObject(rHandList, rFocusObject, rTarget, rDefault, Controller.RightControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.RightGrab() || rTouch);
 					break;
 				case SelectionType.Fusion:
-					lFocusObject = Check.FusionFindFocusObject(lHandList, lFocusObject, lTarget, lDefault, Controller.LeftControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.LeftGrab());
-					rFocusObject = Check.FusionFindFocusObject(rHandList, rFocusObject, rTarget, rDefault, Controller.RightControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.RightGrab());
+					lFocusObject = Check.FusionFindFocusObject(lHandList, lFocusObject, lTarget, lDefault, Controller.LeftControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.LeftGrab() || lTouch);
+					rFocusObject = Check.FusionFindFocusObject(rHandList, rFocusObject, rTarget, rDefault, Controller.RightControllerTransform(), setSelectionRange ? selectionRange : float.PositiveInfinity, Controller.RightGrab() || rTouch);
 					break;
 				default:
 					lFocusObject = null;

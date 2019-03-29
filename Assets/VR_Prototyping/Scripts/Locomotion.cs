@@ -42,7 +42,7 @@ namespace VR_Prototyping.Scripts
         private const float MaxAngle = 60f;
         private const float MinAngle = 0f;
         
-        private const float Trigger = .9f;
+        private const float Trigger = .85f;
         private const float Sensitivity = 10f;
         private const float Tolerance = .1f;
         
@@ -142,103 +142,33 @@ namespace VR_Prototyping.Scripts
 
         private void Update()
         {
-            Set.LocalDepth(rTs.transform, CalculateDepth(ControllerAngle(rCf, rCp, rCn, c.RightControllerTransform(), c.CameraTransform(), c.debugActive), max, min, rCp.transform), false, .2f);
-            Set.LocalDepth(lTs.transform, CalculateDepth(ControllerAngle(lCf, lCp, lCn, c.LeftControllerTransform(), c.CameraTransform(), c.debugActive), max, min, lCp.transform), false, .2f);
+            Set.LocalDepth(rTs.transform, Check.CalculateDepth(Check.ControllerAngle(rCf, rCp, rCn, c.RightControllerTransform(), c.CameraTransform(), c.debugActive), MaxAngle, MinAngle, max, min, rCp.transform), false, .2f);
+            Set.LocalDepth(lTs.transform, Check.CalculateDepth(Check.ControllerAngle(lCf, lCp, lCn, c.LeftControllerTransform(), c.CameraTransform(), c.debugActive), MaxAngle, MinAngle, max, min, lCp.transform), false, .2f);
 
-            TargetLocation(rTs, rHp, transform);
-            TargetLocation(lTs, lHp, transform);
+            Check.TargetLocation(rTs, rHp, transform);
+            Check.TargetLocation(lTs, lHp, transform);
 
             Set.LocalDepth(rMp.transform, Set.Midpoint(rCp.transform, rTs.transform), false, 0f);
             Set.LocalDepth(lMp.transform, Set.Midpoint(lCp.transform, lTs.transform), false, 0f);
-
-            DrawLineRender(rLr, c.RightControllerTransform(), rMp.transform, rHp.transform, lineRenderQuality);            
-            DrawLineRender(lLr, c.LeftControllerTransform(), lMp.transform, lHp.transform, lineRenderQuality);
             
-            Target(rVo, rHp, rCn.transform, c.RightJoystick(), rRt);
-            Target(lVo, lHp, lCn.transform, c.LeftJoystick(), lRt);
-        }
-
-        private static void Target(GameObject visual, GameObject parent, Transform normal, Vector2 pos, GameObject target)
-        {
-            visual.transform.LookAt(RotationTarget(pos, target));
+            Check.Target(rVo, rHp, rCn.transform, c.RightJoystick(), rRt);
+            Check.Target(lVo, lHp, lCn.transform, c.LeftJoystick(), lRt);
             
-            parent.transform.forward = normal.forward;
-        }
-        
-        private static Transform RotationTarget(Vector2 pos, GameObject target)
-        {
-            target.transform.localPosition = Vector3.Lerp(target.transform.localPosition, new Vector3(pos.x, 0, pos.y), .1f);
-            return target.transform;
+            BezierCurve.BezierLineRenderer(rLr,c.RightControllerTransform().position,rMp.transform.position,rHp.transform.position,lineRenderQuality);
+            BezierCurve.BezierLineRenderer(lLr, c.LeftControllerTransform().position, lMp.transform.position, lHp.transform.position, lineRenderQuality);
+
         }
 
         private void LateUpdate()
         {
-            JoystickTracking(rJoystickValues, c.RightJoystick());
-            JoystickTracking(lJoystickValues, c.LeftJoystick());
+            Check.JoystickTracking(rJoystickValues, c.RightJoystick(), Sensitivity);
+            Check.JoystickTracking(lJoystickValues, c.LeftJoystick(), Sensitivity);
             
-            GestureDetection(c.RightJoystick(), rJoystickValues[0], angle, rotateSpeed, Trigger, Tolerance, rVo, rLr, c.RightJoystickPress(), pTouchR, disableRightHand, active);
-            GestureDetection(c.LeftJoystick(), lJoystickValues[0], angle, rotateSpeed, Trigger, Tolerance, lVo, lLr, c.LeftJoystickPress(), pTouchL, disableLeftHand, active);
+            Check.GestureDetection(this, c.RightJoystick(), rJoystickValues[0], angle, rotateSpeed, Trigger, Tolerance, rVo, rLr, c.RightJoystickPress(), pTouchR, disableRightHand, active);
+            Check.GestureDetection(this, c.LeftJoystick(), lJoystickValues[0], angle, rotateSpeed, Trigger, Tolerance, lVo, lLr, c.LeftJoystickPress(), pTouchL, disableLeftHand, active);
             
             pTouchR = c.RightJoystickPress();
             pTouchL = c.LeftJoystickPress();
-        }
-
-        private static void JoystickTracking(List<Vector2> list, Vector2 current)
-        {
-            list.Add(current);
-            CullList(list);
-        }
-        
-        private static void CullList(IList list)
-        {
-            if (list.Count > Sensitivity)
-            {
-                list.RemoveAt(0);
-            }
-        }
-
-        private void GestureDetection(Vector2 current, Vector2 previous, float rot, float speed, float triggerValue, float toleranceValue, GameObject visual, LineRenderer lr, bool currentTouch, bool previousTouch, bool disabled, bool locomotionActive)
-        {
-            if (disabled) return;
-            
-            var trigger = Mathf.Abs(current.x) > triggerValue || Mathf.Abs(current.y) > triggerValue;
-            var tolerance = Mathf.Abs(previous.x) - 0 <= toleranceValue && Mathf.Abs(previous.y) - 0 <= toleranceValue;
-            var triggerEnd = Mathf.Abs(current.x) - 0 <= toleranceValue && Mathf.Abs(current.y) - 0 <= toleranceValue;
-            var toleranceEnd = Mathf.Abs(previous.x) > triggerValue || Mathf.Abs(previous.y) > triggerValue;
-
-            var latch = trigger && toleranceEnd;
-            
-            if ((trigger && tolerance && !locomotionActive && !latch) || (currentTouch && !previousTouch && !locomotionActive))
-            {
-                if (current.x > triggerValue)
-                {
-                    Debug.Log(current.x + "RIGHT");
-                    RotateUser(rot, speed);
-                    
-                }
-                else if (current.x < -triggerValue)
-                {
-                    Debug.Log(current.x + "LEFT");
-                    RotateUser(-rot, speed);
-                }
-                else if (current.y < -triggerValue)
-                {
-                    Debug.Log(current.x + "BACK");
-                    RotateUser(180f, speed);
-                }
-                //else// if ((current.y > Tolerance) || (currentTouch && !previousTouch)
-                //{
-                //    LocomotionStart(visual, lr);
-                //}
-            }
-            else if ((currentTouch && previousTouch && !locomotionActive) || (trigger && toleranceEnd && !locomotionActive))
-            {
-                LocomotionStart(visual, lr);
-            }
-            else if ((triggerEnd && toleranceEnd && locomotionActive) || (!currentTouch && previousTouch && locomotionActive))
-            {
-                LocomotionEnd(visual, visual.transform.position, visual.transform.eulerAngles, lr);
-            }
         }
 
         private static Vector3 RotationAngle(Transform target, float a)
@@ -247,7 +177,7 @@ namespace VR_Prototyping.Scripts
             return new Vector3(t.x, t.y + a, t.z);
         }
 
-        private void RotateUser(float a, float time)
+        public void RotateUser(float a, float time)
         {
             if(transform.parent == cN.transform || !rotation) return;
             active = true;
@@ -303,56 +233,6 @@ namespace VR_Prototyping.Scripts
             a.SetParent(null);
             active = false;
             yield return null;
-        }
-
-        private static void DrawLineRender(LineRenderer lr, Transform con, Transform mid, Transform end, int quality)
-        {
-            BezierCurve.BezierLineRenderer(lr,
-                con.position,
-                mid.position,
-                end.position,
-                quality);
-        }
-        private static float ControllerAngle(GameObject follow, GameObject proxy, GameObject normal, Transform controller, Transform head, bool debug)
-        {
-            Set.Position(proxy.transform, controller);
-            Set.ForwardVector(proxy.transform, controller);
-            Set.SplitRotation(proxy.transform, normal.transform, true);
-            Set.SplitPosition(head, controller, follow.transform);
-            follow.transform.LookAt(proxy.transform);
-
-            if (!debug) return Vector3.Angle(normal.transform.forward, proxy.transform.forward);
-            
-            var normalForward = normal.transform.forward;
-            var proxyForward = proxy.transform.forward;
-            var position = proxy.transform.position;
-            
-            Debug.DrawLine(follow.transform.position, position, Color.red);
-            Debug.DrawRay(normal.transform.position, normalForward, Color.blue);
-            Debug.DrawRay(position, proxyForward, Color.blue);
-
-            return Vector3.Angle(normalForward, proxyForward);
-        }
-        private static float CalculateDepth(float angle, float max, float min, Transform proxy)
-        {
-            var a = angle;
-
-            a = a > MaxAngle ? MaxAngle : a;
-            a = a < MinAngle ? MinAngle : a;
-
-            a = proxy.eulerAngles.x < 180 ? MinAngle : a;
-            
-            var proportion = Mathf.InverseLerp(MaxAngle, MinAngle, a);
-            return Mathf.Lerp(max, min, proportion);
-        }
-
-        private static void TargetLocation(GameObject target, GameObject hitPoint, Transform current)
-        {
-            var t = target.transform;
-            var position = t.position;
-            var up = t.up;
-            hitPoint.transform.position = Vector3.Lerp(hitPoint.transform.position, Physics.Raycast(position, -up, out var hit) ? hit.point : current.position, .25f);
-            hitPoint.transform.up = Physics.Raycast(position, -up, out var h) ? h.normal : current.transform.up;
         }
     }
 }

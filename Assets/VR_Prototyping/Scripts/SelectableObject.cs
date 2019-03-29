@@ -13,7 +13,8 @@ namespace VR_Prototyping.Scripts
 {
 	[RequireComponent(typeof(Rigidbody))]
 	public class SelectableObject : MonoBehaviour
-	{ 
+	{
+		public float force = 10f;
 		#region Inspector and Variables
 		private ObjectSelection c;
 		private Manipulation f;
@@ -44,6 +45,9 @@ namespace VR_Prototyping.Scripts
 			OnButtonDown,
 			OnButtonUp				
 		}
+		
+		public List<Vector3> positions = new List<Vector3>();
+		private const float Sensitivity = 30f;
 	
 		[BoxGroup("Script Setup")] [SerializeField] [Required] private GameObject player;
 		[BoxGroup("Script Setup")] [HideIf("button")] [SerializeField] private bool grab;
@@ -58,7 +62,6 @@ namespace VR_Prototyping.Scripts
 		[TabGroup("Manipulation Settings")] [HideIf("button")] [Range(0, 10f)] public float latency = 4.5f;
 		[TabGroup("Manipulation Settings")] [HideIf("button")] [SerializeField] private bool gravity;
 		[TabGroup("Manipulation Settings")] [HideIf("button")] [ShowIf("grab")] [Space(3)] public bool directGrab = true;
-		[TabGroup("Manipulation Settings")] [HideIf("button")] [ShowIf("grab")] [ShowIf("directGrab")] [SerializeField] [Indent] [Range(.1f, 5f)] private float directGrabDistance = .15f;
 		[TabGroup("Rotation Settings")] [HideIf("button")] [SerializeField] public bool freeRotationEnabled;
 		[TabGroup("Rotation Settings")] [HideIf("button")] [HideIf("freeRotationEnabled")] [Indent] [SerializeField] public RotationLock rotationLock;
 		
@@ -151,14 +154,75 @@ namespace VR_Prototyping.Scripts
 		private void Update()
 		{		
 			GetAngles();
-			CheckDirectGrab();
 			ReactiveMaterial();
 
 			var o = gameObject;
 			CheckGaze(o, gazeAngle, c.gaze, c.gazeList, c.lHandList, c.rHandList, c.globalList);
 			ManageList(o, c.lHandList, CheckHand(o, c.gazeList, c.manual, AngleL,f.disableRightGrab, button), c.disableLeftHand, WithinRange(c.setSelectionRange, transform, c.Controller.LeftControllerTransform(), c.selectionRange));
 			ManageList(o, c.rHandList, CheckHand(o, c.gazeList, c.manual, AngleR,f.disableLeftGrab, button), c.disableRightHand, WithinRange(c.setSelectionRange, transform, c.Controller.RightControllerTransform(), c.selectionRange));
+			
+			Check.PositionTracking(positions, transform.position, Sensitivity);
+			Debug.DrawRay(transform.position, Set.Velocity(positions) * force, Color.cyan);
 		}
+
+		private void OnTriggerEnter(Collider col)
+		{
+			switch (col.gameObject.name)
+			{
+				case Manipulation.RTag when !c.rTouch:
+					c.rTouch = true;
+					c.rFocusObject = gameObject;
+					break;
+				case Manipulation.LTag when !c.lTouch:
+					c.lTouch = true;
+					c.lFocusObject = gameObject;
+					break;
+				default:
+					return;
+			}
+		}
+		private void OnTriggerStay(Collider col)
+		{
+			switch (col.gameObject.name)
+			{
+				case Manipulation.RTag when c.Controller.RightGrab() && directGrab && !c.rTouch:
+					rb.useGravity = false;
+					transform.SetParent(f.cR.transform);
+					break;
+				case Manipulation.RTag when !c.Controller.RightGrab() && directGrab && !c.rTouch:
+					rb.useGravity = gravity;
+					rb.AddForce(Set.Velocity(positions));
+					transform.SetParent(null);
+					break;
+				case Manipulation.LTag when c.Controller.LeftGrab() && directGrab && !c.lTouch:
+					rb.useGravity = false;
+					Set.AddForceFollow(rb, force, transform, f.cL.transform);
+					break;
+				case Manipulation.LTag when !c.Controller.LeftGrab() && directGrab && !c.lTouch:
+					rb.useGravity = gravity;
+					transform.SetParent(null);
+					break;
+				default:
+					return;
+			}
+		}
+		private void OnTriggerExit(Collider col)
+		{
+			switch (col.gameObject.name)
+			{
+				case Manipulation.RTag when c.rFocusObject == transform.gameObject:
+					rb.useGravity = gravity;
+					c.rTouch = false;
+					break;
+				case Manipulation.LTag when c.lFocusObject == transform.gameObject:
+					rb.useGravity = gravity;
+					c.lTouch = false;
+					break;
+				default:
+					return;
+			}
+		}
+
 		private void ReactiveMaterial()
 		{
 			if (!reactiveMat) return;
@@ -218,14 +282,6 @@ namespace VR_Prototyping.Scripts
 			else if (!b && l.Contains(g))
 			{
 				l.Remove(g);
-			}
-		}
-		
-		private void CheckDirectGrab()
-		{
-			if (Vector3.Distance(transform.position, c.Controller.LeftControllerTransform().position) <= directGrabDistance)
-			{
-				c.grabObject = gameObject;
 			}
 		}
 
